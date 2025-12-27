@@ -24,7 +24,6 @@ from lsprotocol.types import (
     MarkupContent,
     MarkupKind,
 )
-from pygls import server as pygls_server
 
 from .sage_features import SageFeatures
 
