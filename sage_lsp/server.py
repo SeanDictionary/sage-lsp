@@ -61,7 +61,8 @@ async def completions(ls, params: CompletionParams) -> Optional[CompletionList]:
         List of completion items or None
     """
     try:
-        document = ls.text_documents[params.text_document.uri]
+        # Access document through the protocol's workspace
+        document = ls.protocol.workspace.text_documents[params.text_document.uri]
         position = params.position
         
         # Get completions from SageMath features
@@ -92,7 +93,8 @@ async def hover(ls, params: HoverParams) -> Optional[Hover]:
         Hover information or None
     """
     try:
-        document = ls.text_documents[params.text_document.uri]
+        # Access document through the protocol's workspace
+        document = ls.protocol.workspace.text_documents[params.text_document.uri]
         position = params.position
         
         # Get hover information from SageMath features
@@ -117,22 +119,25 @@ async def hover(ls, params: HoverParams) -> Optional[Hover]:
 
 def create_server():
     """Create and configure the language server."""
-    from pygls.protocol import LanguageServerProtocol, lsp_method
+    from pygls.protocol import LanguageServerProtocol, default_converter
     from pygls.server import JsonRPCServer
-    from lsprotocol import types
     
     class SageLanguageServer(JsonRPCServer):
         """SageMath Language Server."""
         
         def __init__(self):
-            super().__init__(LanguageServerProtocol, None)
+            # Set server name and version before calling parent __init__
+            self.name = "sage-lsp"
+            self.version = "0.1.0"
             
-            # Register handlers
-            self.lsp.fm.add_feature(TEXT_DOCUMENT_DID_OPEN, did_open)
-            self.lsp.fm.add_feature(TEXT_DOCUMENT_DID_CHANGE, did_change)
-            self.lsp.fm.add_feature(TEXT_DOCUMENT_DID_SAVE, did_save)
-            self.lsp.fm.add_feature(TEXT_DOCUMENT_COMPLETION, completions)
-            self.lsp.fm.add_feature(TEXT_DOCUMENT_HOVER, hover)
+            super().__init__(LanguageServerProtocol, default_converter)
+            
+            # Register handlers using the decorator pattern
+            self.protocol.fm.feature(TEXT_DOCUMENT_DID_OPEN)(did_open)
+            self.protocol.fm.feature(TEXT_DOCUMENT_DID_CHANGE)(did_change)
+            self.protocol.fm.feature(TEXT_DOCUMENT_DID_SAVE)(did_save)
+            self.protocol.fm.feature(TEXT_DOCUMENT_COMPLETION)(completions)
+            self.protocol.fm.feature(TEXT_DOCUMENT_HOVER)(hover)
     
     return SageLanguageServer()
 
@@ -192,10 +197,10 @@ def main():
     # Start the server
     if args.tcp:
         logger.info(f"Starting TCP server on {args.host}:{args.port}")
-        pygls_server.run(server, args.host, args.port)
+        server.start_tcp(args.host, args.port)
     else:
         logger.info("Starting stdio server")
-        pygls_server.run(server)
+        server.start_io()
 
 
 if __name__ == "__main__":
