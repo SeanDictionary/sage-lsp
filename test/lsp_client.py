@@ -1,0 +1,243 @@
+import json
+import subprocess
+import sys
+from typing import Any, Dict, Optional
+
+
+# ANSI color codes
+class Color:
+    BLUE = '\033[34m'      # Client sends
+    GREEN = '\033[32m'     # Client receives / Success
+    YELLOW = '\033[33m'    # Warnings
+    RESET = '\033[0m'      # Reset color
+    BOLD = '\033[1m'       # Bold text
+
+
+class LSPClient:
+    def hover(self, uri: str, line: int, character: int) -> Dict[str, Any]:
+        """
+        Request hover information
+        
+        Args:
+            uri: Document URI
+            line: Line number (0-based)
+            character: Character offset (0-based)
+            
+        Returns:
+            Hover response result
+        """
+        request_id = self.send_request("textDocument/hover", {
+            "textDocument": {"uri": uri},
+            "position": {"line": line, "character": character}
+        })
+        
+        response = self.read_response(expected_id=request_id)
+        return response.get("result")
+    
+    def __init__(self, server_command: list[str]):
+        """
+        初始化 LSP 客户端
+        
+        Args:
+            server_command: 启动服务器的命令，如 [sys.executable, "-m", "sagelsp"]
+        """
+        self.server_command = server_command
+        self.process: Optional[subprocess.Popen] = None
+        self.request_id = 0
+        self.initialized = False
+    
+    def start(self):
+        """Start LSP server process"""
+        print(f"{Color.BOLD}Starting server: {' '.join(self.server_command)}{Color.RESET}", file=sys.stderr)
+        self.process = subprocess.Popen(
+            self.server_command,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=None,  # Let server logs go to terminal stderr
+        )
+    
+    def stop(self):
+        """Stop LSP server process"""
+        if self.process:
+            self.process.terminate()
+            self.process.wait(timeout=5)
+            self.process = None
+    
+    def send_request(self, method: str, params: Optional[Dict[str, Any]] = None) -> int:
+        """
+        发送 JSON-RPC 请求
+        
+        Args:
+            method: LSP 方法名
+            params: 请求参数
+            
+        Returns:
+            请求 ID
+        """
+        if method == "shutdown":
+            print(file=sys.stderr)
+        if not self.process:
+            raise RuntimeError("Server not started")
+        
+        self.request_id += 1
+        request = {
+            "jsonrpc": "2.0",
+            "id": self.request_id,
+            "method": method,
+        }
+        if params:
+            request["params"] = params
+        
+        content = json.dumps(request)
+        message = f"Content-Length: {len(content)}\r\n\r\n{content}"
+        
+        print(f"{Color.BLUE}→ Sending request [{self.request_id}]: {method}{Color.RESET}", file=sys.stderr)
+        self.process.stdin.write(message.encode())
+        self.process.stdin.flush()
+        
+        return self.request_id
+    
+    def send_notification(self, method: str, params: Optional[Dict[str, Any]] = None):
+        """
+        发送 JSON-RPC 通知（不需要响应）
+        
+        Args:
+            method: LSP 方法名
+            params: 通知参数
+        """
+        if not self.process:
+            raise RuntimeError("Server not started")
+        
+        notification = {
+            "jsonrpc": "2.0",
+            "method": method,
+        }
+        if params is not None:  # Check for None instead of truthiness
+            notification["params"] = params
+        
+        content = json.dumps(notification)
+        message = f"Content-Length: {len(content)}\r\n\r\n{content}"
+        
+        print(f"{Color.BLUE}→ Sending notification: {method}{Color.RESET}", file=sys.stderr)
+        self.process.stdin.write(message.encode())
+        self.process.stdin.flush()
+    
+    def _read_message(self) -> Dict[str, Any]:
+        """Read one LSP message (response or notification)."""
+        if not self.process:
+            raise RuntimeError("Server not started")
+
+        headers = {}
+        while True:
+            line = self.process.stdout.readline().decode().strip()
+            if not line:
+                break
+            if ": " in line:
+                key, value = line.split(": ", 1)
+                headers[key] = value
+
+        content_length = int(headers.get("Content-Length", 0))
+        content = self.process.stdout.read(content_length).decode()
+        message = json.loads(content)
+
+        if "id" in message:
+            print(f"{Color.GREEN}← Received response [{message['id']}]{Color.RESET}", file=sys.stderr)
+        else:
+            print(f"{Color.GREEN}← Received notification: {message.get('method', 'unknown')}{Color.RESET}", file=sys.stderr)
+
+        return message
+
+    def read_response(self, expected_id: Optional[int] = None) -> Dict[str, Any]:
+        """
+        Read response; automatically skip notifications until matching expected_id.
+
+        Args:
+            expected_id: Expected request ID; if None, return first message with id.
+        """
+        while True:
+            message = self._read_message()
+
+            # Only care about responses with id, skip notifications
+            if "id" not in message:
+                continue
+
+            if expected_id is not None and message.get("id") != expected_id:
+                # Not target response, continue reading
+                continue
+
+            return message
+    
+    def initialize(self, root_uri: Optional[str] = None) -> Dict[str, Any]:
+        """
+        执行 LSP initialize 握手
+        
+        Args:
+            root_uri: 工作区根目录 URI
+            
+        Returns:
+            服务器能力信息
+        """
+        request_id = self.send_request("initialize", {
+            "processId": None,
+            "rootUri": root_uri,
+            "capabilities": {}
+        })
+        
+        response = self.read_response(expected_id=request_id)
+        
+        if "result" not in response:
+            raise RuntimeError("Initialize response missing result")
+        
+        # Send initialized notification
+        self.send_notification("initialized", {})
+        self.initialized = True
+        
+        print(f"{Color.GREEN}✓ Initialization successful{Color.RESET}", file=sys.stderr)
+        return response["result"]
+    
+    def shutdown(self):
+        """Execute graceful shutdown"""
+        if not self.initialized:
+            return
+        
+        request_id = self.send_request("shutdown")
+        response = self.read_response(expected_id=request_id)
+        
+        # Send exit notification
+        self.send_notification("exit")
+        
+        print(f"{Color.GREEN}✓ Server shutdown complete{Color.RESET}", file=sys.stderr)
+        self.initialized = False
+    
+    def did_open(self, uri: str, language_id: str, text: str, version: int = 1):
+        """
+        Notify server that document is opened
+        
+        Args:
+            uri: Document URI
+            language_id: Language identifier
+            text: Document content
+            version: Document version
+        """
+        self.send_notification("textDocument/didOpen", {
+            "textDocument": {
+                "uri": uri,
+                "languageId": language_id,
+                "version": version,
+                "text": text
+            }
+        })
+
+    
+    def __enter__(self):
+        """Context manager entry"""
+        self.start()
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit"""
+        try:
+            if self.initialized:
+                self.shutdown()
+        finally:
+            self.stop()

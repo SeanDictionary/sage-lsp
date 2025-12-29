@@ -1,0 +1,26 @@
+[project]
+name = "sage-lsp"
+version = "0.0.1"
+requires-python = ">=3.9"
+description = "SageMath Language Server Protocol"
+dependencies = [
+    "pygls==2.0.0",
+]
+authors = [
+    { name = "SeanDictionary", email = "sean.dictionary@qq.com" }
+]
+license = { text = "GPL3" }
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+Homepage = "https://github.com/SeanDictionary/sage-lsp"
+
+[project.scripts]
+sagelsp = "sagelsp.__main__:main"
+
+[tool.pytest.ini_options]
+addopts = "-v --tb=short"
+console_output_style = "classic"
