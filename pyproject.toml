@@ -5,6 +5,8 @@ requires-python = ">=3.9"
 description = "SageMath Language Server Protocol"
 dependencies = [
     "pygls==2.0.0",
+    "pluggy==1.6.0",
+    "pycodestyle==2.14.0",
 ]
 authors = [
     { name = "SeanDictionary", email = "sean.dictionary@qq.com" }

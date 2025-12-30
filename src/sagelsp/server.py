@@ -1,3 +1,4 @@
+from sagelsp import NAME, __version__
 from pygls.lsp.server import LanguageServer
 from lsprotocol import types
 from lsprotocol.types import Hover, HoverParams, MarkupContent, MarkupKind
@@ -6,7 +7,7 @@ class SageLanguageServer(LanguageServer):
     def __init__(self, *args):
         super().__init__(*args)
 
-server = SageLanguageServer("SageLSP", "v0.1")
+server = SageLanguageServer(NAME, __version__)
 
 @server.feature(types.TEXT_DOCUMENT_HOVER)
 def hover(ls: SageLanguageServer, params: HoverParams) -> Hover:
