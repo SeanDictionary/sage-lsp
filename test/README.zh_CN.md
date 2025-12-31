@@ -4,9 +4,9 @@
 
 ### 文件结构
 
--   [test/lsp_client.py](test/lsp_client.py) - LSP 客户端封装（请求/通知，响应读取）
--   [test/test_lsp_server.py](test/test_lsp_server.py) - Pytest 测试用例：initialize / hover / shutdown
--   [test/conftest.py](test/conftest.py) - Pytest 配置与路径设置
+-   [test/lsp_client.py](lsp_client.py) - LSP 客户端封装（请求/通知，响应读取）
+-   [test/test_lsp_server.py](test_lsp_server.py) - Pytest 测试用例：initialize / hover / shutdown
+-   [test/conftest.py](conftest.py) - Pytest 配置与路径设置
 
 ### 运行测试
 
@@ -23,7 +23,7 @@ pytest -s -v test/test_lsp_server.py::TestLSPServer::test_hover  # 运行单个�
 
 ### 添加新测试
 
-在 [test/test_lsp_server.py](test/test_lsp_server.py) 中添加测试函数或类方法，使用 `lsp_client` fixture（自动启动/初始化/清理）：
+在 [test/test_lsp_server.py](test_lsp_server.py) 中添加测试函数或类方法，使用 `lsp_client` fixture（自动启动/初始化/清理）：
 
 ```python
 def test_my_feature(lsp_client):

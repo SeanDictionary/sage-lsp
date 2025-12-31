@@ -1,21 +1,29 @@
 from sagelsp import NAME, __version__
+from sagelsp.plugins.manager import create_plugin_manager
 from pygls.lsp.server import LanguageServer
 from lsprotocol import types
-from lsprotocol.types import Hover, HoverParams, MarkupContent, MarkupKind
+import logging
+
+log = logging.getLogger(__name__)
 
 class SageLanguageServer(LanguageServer):
     def __init__(self, *args):
         super().__init__(*args)
+        self.pm = create_plugin_manager()
+        self.log = log
+
 
 server = SageLanguageServer(NAME, __version__)
 
-@server.feature(types.TEXT_DOCUMENT_HOVER)
-def hover(ls: SageLanguageServer, params: HoverParams) -> Hover:
-    """Return a simple hover so clients can verify the server is alive."""
+@server.feature(types.TEXT_DOCUMENT_DID_OPEN)
+@server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
+def did_change(ls: SageLanguageServer, params: types.DidChangeTextDocumentParams):
+    """Handle document change events."""
+    doc = ls.workspace.get_document(params.text_document.uri)
+    diagnostics = ls.pm.hook.sagelsp_lint(doc=doc)
 
-    return Hover(
-        contents=MarkupContent(
-            kind=MarkupKind.PlainText,
-            value="SageLSP is running. Hover works!",
-        ),
+    params = types.PublishDiagnosticsParams(
+        uri=doc.uri,
+        diagnostics=diagnostics
     )
+    ls.text_document_publish_diagnostics(params)

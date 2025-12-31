@@ -3,7 +3,7 @@
 import sys
 import os
 import pytest
-from lsp_client import LSPClient
+from lspclient import LSPClient
 
 # 添加 test 目录到 Python 路径
 sys.path.insert(0, os.path.dirname(__file__))

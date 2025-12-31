@@ -1,8 +1,8 @@
+import pytest
 code_text = """
 x = 1 + 1
 print(x)
 """
-
 
 
 def test_hover(client):
@@ -13,6 +13,6 @@ def test_hover(client):
         language_id="sagemath",
         text=code_text
     )
-    
-    # 请求 hover 信息
-    result = client.hover("file:///test.sage", line=0, character=0)
+
+if __name__ == "__main__":
+    pytest.main([__file__])

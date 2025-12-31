@@ -2,38 +2,9 @@ import json
 import subprocess
 import sys
 from typing import Any, Dict, Optional
+from color import Color
 
-
-# ANSI color codes
-class Color:
-    BLUE = '\033[34m'      # Client sends
-    GREEN = '\033[32m'     # Client receives / Success
-    YELLOW = '\033[33m'    # Warnings
-    RESET = '\033[0m'      # Reset color
-    BOLD = '\033[1m'       # Bold text
-
-
-class LSPClient:
-    def hover(self, uri: str, line: int, character: int) -> Dict[str, Any]:
-        """
-        Request hover information
-        
-        Args:
-            uri: Document URI
-            line: Line number (0-based)
-            character: Character offset (0-based)
-            
-        Returns:
-            Hover response result
-        """
-        request_id = self.send_request("textDocument/hover", {
-            "textDocument": {"uri": uri},
-            "position": {"line": line, "character": character}
-        })
-        
-        response = self.read_response(expected_id=request_id)
-        return response.get("result")
-    
+class LSPClientBase:    
     def __init__(self, server_command: list[str]):
         """
         初始化 LSP 客户端
@@ -208,27 +179,7 @@ class LSPClient:
         
         print(f"{Color.GREEN}✓ Server shutdown complete{Color.RESET}", file=sys.stderr)
         self.initialized = False
-    
-    def did_open(self, uri: str, language_id: str, text: str, version: int = 1):
-        """
-        Notify server that document is opened
-        
-        Args:
-            uri: Document URI
-            language_id: Language identifier
-            text: Document content
-            version: Document version
-        """
-        self.send_notification("textDocument/didOpen", {
-            "textDocument": {
-                "uri": uri,
-                "languageId": language_id,
-                "version": version,
-                "text": text
-            }
-        })
 
-    
     def __enter__(self):
         """Context manager entry"""
         self.start()

@@ -35,8 +35,14 @@ def sagelsp_lint(doc: TextDocument):
         report=PyCodeStyleReport(style.options),
     )
     checker.check_all()
-    report = checker.report
+    diagnostics = checker.report.diagnostics
 
+    return diagnostics
+
+"""
+Folowing codes are adapted from python-lsp-server
+https://github.com/python-lsp/python-lsp-server/blob/develop/pylsp/plugins/pycodestyle_lint.py
+"""
 class PyCodeStyleReport(pycodestyle.BaseReport):
     def __init__(self, options) -> None:
         self.diagnostics = []

@@ -4,7 +4,8 @@ from typing import Union
 import logging
 import pluggy
 
-from sagelsp import NAME, hookspec
+from sagelsp import NAME
+from sagelsp.plugins import hookspecs
 
 log = logging.getLogger(__name__)
 
@@ -25,3 +26,9 @@ class PluginManager(pluggy.PluginManager):
             log.warning(f"Failed to load hook {hook_name}: {e}", exc_info=True)
             return []
 
+
+def create_plugin_manager():
+    pm = PluginManager(NAME)
+    pm.add_hookspecs(hookspecs)
+    pm.load_setuptools_entrypoints(NAME)
+    return pm
