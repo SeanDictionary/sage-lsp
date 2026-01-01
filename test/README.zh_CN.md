@@ -11,15 +11,10 @@
 ### 运行测试
 
 ```bash
-pytest -s -v test/                                   # 运行全部测试并显示日志
-pytest -s -v test/test_lsp_server.py                 # 运行指定文件
-pytest -s -v test/test_lsp_server.py::TestLSPServer::test_hover  # 运行单个用例
+pytest test/                                   # 运行全部测试并显示日志
+pytest test/test_lsp_server.py                 # 运行指定文件
+pytest test/test_lsp_server.py::TestLSPServer::test_hover  # 运行单个用例
 ```
-
-查看更多细节的建议：
-
--   添加 `-vv` 可以显示更详细的测试名称
--   客户端已经打印每个请求/响应；保留 `-s` 以查看 stdout/stderr
 
 ### 添加新测试
 
@@ -44,10 +39,16 @@ def test_my_feature(lsp_client):
 
 ### LSPClient 快速参考
 
+LSPClient 由一个LSPClientBase集成得到。LSPClientBase定义了必要的测试方法如下：
+
 -   initialize() – 执行初始化握手
 -   shutdown() – 优雅关闭
--   did_open(uri, language_id, text, version=1) – 发送 didOpen 通知
--   hover(uri, line, character) – 请求 hover 信息
 -   send_request(method, params=None) – 发送请求，返回请求 ID
 -   send_notification(method, params=None) – 发送通知
 -   read_response(expected_id=None) – 读取一条响应，自动跳过通知
+
+LSPClient 还扩展了以下方法：
+
+-   did_change(uri, text, version) – 发送 didChange 通知
+-   did_open(uri, language_id, text, version=1) – 发送 didOpen 通知
+-   hover(uri, line, character) – 请求 hover 信息

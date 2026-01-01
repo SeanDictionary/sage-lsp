@@ -8,12 +8,13 @@ log = logging.getLogger(__name__)
 LOG_FORMAT = "%(asctime)s - %(name)s [%(levelname)s]: %(message)s"
 
 def main():
-    _config_logging(logging.INFO)
+    _config_logging(logging.DEBUG)
     log.info(f"Starting SageLSP {__version__}. By SeanDictionary")
     server.start_io()
 
 
 def _config_logging(level=logging.INFO):
+    # TODO: Support custom config
     logging.basicConfig(
         level=level,
         format=LOG_FORMAT,

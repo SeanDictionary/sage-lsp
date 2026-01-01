@@ -1,6 +1,7 @@
 from sagelsp import NAME, __version__
 from sagelsp.plugins.manager import create_plugin_manager
 from pygls.lsp.server import LanguageServer
+from pygls.workspace import TextDocument
 from lsprotocol import types
 import logging
 
@@ -19,11 +20,13 @@ server = SageLanguageServer(NAME, __version__)
 @server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
 def did_change(ls: SageLanguageServer, params: types.DidChangeTextDocumentParams):
     """Handle document change events."""
-    doc = ls.workspace.get_document(params.text_document.uri)
-    diagnostics = ls.pm.hook.sagelsp_lint(doc=doc)
+    doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
+    all_diagnostics = ls.pm.hook.sagelsp_lint(doc=doc)
+    diagnostics = [diag for plugin_diags in all_diagnostics for diag in plugin_diags]
 
     params = types.PublishDiagnosticsParams(
         uri=doc.uri,
-        diagnostics=diagnostics
+        diagnostics=diagnostics,
+        version=doc.version,
     )
     ls.text_document_publish_diagnostics(params)

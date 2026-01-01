@@ -11,15 +11,10 @@
 ### Run tests
 
 ```bash
-pytest -s -v test/                                   # all tests with logs
-pytest -s -v test/test_lsp_server.py                 # single file
-pytest -s -v test/test_lsp_server.py::TestLSPServer::test_hover  # single case
+pytest test/                                   # all tests with logs
+pytest test/test_lsp_server.py                 # single file
+pytest test/test_lsp_server.py::TestLSPServer::test_hover  # single case
 ```
-
-Tips for more detail:
-
--   Add `-vv` for extra verbosity on test names.
--   The client already prints every request/response; keep `-s` to see stdout/stderr.
 
 ### Add a new test
 
@@ -44,10 +39,16 @@ def test_my_feature(lsp_client):
 
 ### LSPClient quick reference
 
+LSPClient is built atop LSPClientBase which defines the necessary test methods:
+
 -   initialize() – run initialize handshake
 -   shutdown() – graceful shutdown
--   did_open(uri, language_id, text, version=1) – send didOpen
--   hover(uri, line, character) – request hover
 -   send_request(method, params=None) – send a request, returns request id
 -   send_notification(method, params=None) – send a notification
 -   read_response(expected_id=None) – read one response, skipping notifications
+
+LSPClient also extends with these methods:
+
+-   did_change(uri, text, version) – send didChange notification
+-   did_open(uri, language_id, text, version=1) – send didOpen notification
+-   hover(uri, line, character) – request hover info

@@ -1,11 +1,11 @@
 import json
 import subprocess
 import sys
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 from color import Color
 
 class LSPClientBase:    
-    def __init__(self, server_command: list[str]):
+    def __init__(self, server_command: List[str]):
         """
         初始化 LSP 客户端
         

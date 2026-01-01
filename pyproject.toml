@@ -24,7 +24,7 @@ Homepage = "https://github.com/SeanDictionary/sage-lsp"
 sagelsp = "sagelsp.__main__:main"
 
 [project.entry-points.sagelsp]
-pycodestyle = "pylsp.plugins.pycodestyle"
+pycodestyle = "sagelsp.plugins.pycodestyle"
 
 [tool.pytest.ini_options]
 addopts = "-s -v --tb=short"

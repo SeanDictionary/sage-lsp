@@ -1,3 +1,11 @@
+"""
+Folowing codes are adapted from python-lsp-server
+https://github.com/python-lsp/python-lsp-server/blob/develop/pylsp/lsp.py
+
+The similar code is also in lsprotocol.types
+https://github.com/microsoft/lsprotocol/blob/main/packages/python/lsprotocol/types.py
+"""
+
 # Copyright 2017-2020 Palantir Technologies, Inc.
 # Copyright 2021- Python Language Server Contributors.
 

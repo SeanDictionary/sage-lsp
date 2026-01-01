@@ -1,15 +1,18 @@
-from sagelsp import hookimpl, DiagnosticTag, DiagnosticSeverity
+from typing import List
+from sagelsp import hookimpl
 import pycodestyle
 import logging
 from pygls.workspace import TextDocument
+from lsprotocol import types
+from lsprotocol.types import DiagnosticSeverity, DiagnosticTag
 
 log = logging.getLogger(__name__)
 
 
 @hookimpl
-def sagelsp_lint(doc: TextDocument):
+def sagelsp_lint(doc: TextDocument) -> List[types.Diagnostic]:
     """Lint the document using pycodestyle."""
-    diagnostics = []
+    diagnostics: List[types.Diagnostic] = []
 
     source = doc.source
     source = source.replace("\r\n", "\n").replace("\r", "\n")
@@ -36,6 +39,9 @@ def sagelsp_lint(doc: TextDocument):
     )
     checker.check_all()
     diagnostics = checker.report.diagnostics
+    log.info(f"pycodestyle found {len(diagnostics)} issues in {doc.uri}")
+    for diag in diagnostics:
+        log.debug(f"- {diag.code} at line {diag.range.start.line + 1}, char {diag.range.start.character}: {diag.message}")
 
     return diagnostics
 
@@ -71,16 +77,18 @@ class PyCodeStyleReport(pycodestyle.BaseReport):
                 else len(self.lines[line_number - 1]),
             },
         }
-        diagnostic = {
-            "source": "pycodestyle",
-            "range": err_range,
-            "message": text,
-            "code": code,
-            # Are style errors really ever errors?
-            "severity": _get_severity(code),
-        }
+        diagnostic = types.Diagnostic(
+            message=text,
+            severity=_get_severity(code),
+            code=code,
+            source="pycodestyle",
+            range=types.Range(
+                start=types.Position(line=err_range["start"]["line"], character=err_range["start"]["character"]),
+                end=types.Position(line=err_range["end"]["line"], character=err_range["end"]["character"]),
+            )
+        )
         if code.startswith("W6"):
-            diagnostic["tags"] = [DiagnosticTag.Deprecated]
+            diagnostic.tags = [DiagnosticTag.Deprecated]
         self.diagnostics.append(diagnostic)
 
 def _get_severity(code):

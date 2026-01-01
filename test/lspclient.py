@@ -41,7 +41,7 @@ class LSPClient(LSPClientBase):
             }
         })
     
-    def did_change(self, uri: str, text: str, version: int):
+    def did_change(self, uri: str, text: str, version: int = 1):
         """
         Notify server that document is changed
         
