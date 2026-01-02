@@ -1,4 +1,5 @@
 import re
+import autopep8
 import pycodestyle
 
 
@@ -26,8 +27,7 @@ def missing_whitespace(logical_line=None, tokens=None):
     Patch for `pycodestyle.missing_whitespace` to support Sage syntax sugar.
     """
     # R.<x>, A.<x, y>, L.<t1, t2, t3>
-    # Fix: E225
-    # Add: E231
+    # Fix: E225, E231
     sage_pattern = re.compile(r'\w+\.<\s*\w+\s*(,\s*\w+\s*)*\s*>')
     match = sage_pattern.search(logical_line)
     if match:
@@ -45,8 +45,7 @@ def missing_whitespace(logical_line=None, tokens=None):
         return
     
     # 1 ^^ 2
-    # Fix: E225
-    # Add: E227
+    # Fix: E225, E227
     if "^^" in logical_line:
         inner = re.search(r'.\^\^.', logical_line)
         if inner:
@@ -61,13 +60,13 @@ def missing_whitespace(logical_line=None, tokens=None):
 
 FUNCS = [
     (
+        pycodestyle.extraneous_whitespace,
+        extraneous_whitespace,
+    ),
+    (
         pycodestyle.missing_whitespace,
         missing_whitespace,
     ),
-    (
-        pycodestyle.extraneous_whitespace,
-        extraneous_whitespace,
-    )
 ]
 
 
@@ -85,7 +84,7 @@ if __name__ == "__main__":
     # test code
     lines = [
         "R.<x, y, z> = PolynominalRing(QQ)\n",
-        "a = 123 //321\n",
+        "a = 123 **321\n",
         "b = 123 ^^ 123\n"
     ]
     
@@ -93,7 +92,6 @@ if __name__ == "__main__":
     checker = pycodestyle.Checker(lines=lines)
     print(checker.check_all())
 
-    # # test code formatter
-    # import autopep8
-    # fixed = autopep8.fix_code("".join(lines))
-    # print(fixed)
+    # test code formatter
+    fixed = autopep8.fix_code("".join(lines))
+    print(fixed)

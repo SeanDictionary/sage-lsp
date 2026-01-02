@@ -1,10 +1,12 @@
-from typing import List
-from sagelsp import hookimpl
 import pycodestyle
 import logging
+from sagelsp import hookimpl
+
 from pygls.workspace import TextDocument
+from typing import List
 from lsprotocol import types
 from lsprotocol.types import DiagnosticSeverity, DiagnosticTag
+
 from .pycodestyle_patch import pycodestyle_patch
 
 log = logging.getLogger(__name__)

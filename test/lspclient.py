@@ -62,3 +62,25 @@ class LSPClient(LSPClientBase):
             ]
         })
 
+    def formatting(self, uri: str):
+        """
+        Request document formatting
+        
+        Args:
+            uri: Document URI
+            text: Document content
+            version: Document version
+            
+        Returns:
+            List of TextEdits for formatting
+        """
+        request_id = self.send_request("textDocument/formatting", {
+            "textDocument": {"uri": uri},
+            "options": {
+                "tabSize": 4,
+                "insertSpaces": True
+            }
+        })
+        
+        response = self.read_response(expected_id=request_id)
+        return response.get("result")

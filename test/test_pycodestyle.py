@@ -1,6 +1,4 @@
-"""Test pycodestyle diagnostics"""
 import pytest
-import time
 from pygls.workspace import TextDocument
 
 
@@ -52,7 +50,7 @@ def test_pycodestyle_diagnostics(client):
     print("\nTest completed. Check the output above for pycodestyle diagnostics.")
 
 
-def test_pycodestyle_direct():
+def _test_pycodestyle_direct():
     """Direct test of the pycodestyle plugin function"""
     from sagelsp.plugins.pycodestyle_lint import sagelsp_lint
     

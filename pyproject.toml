@@ -7,6 +7,7 @@ dependencies = [
     "pygls==2.0.0",
     "pluggy==1.6.0",
     "pycodestyle==2.14.0",
+    "autopep8==2.3.2",
 ]
 authors = [
     { name = "SeanDictionary", email = "sean.dictionary@qq.com" }
@@ -25,6 +26,7 @@ sagelsp = "sagelsp.__main__:main"
 
 [project.entry-points.sagelsp]
 pycodestyle = "sagelsp.plugins.pycodestyle_lint"
+autopep8 = "sagelsp.plugins.autopep8_format"
 
 [tool.pytest.ini_options]
 addopts = "-s -v --tb=short"

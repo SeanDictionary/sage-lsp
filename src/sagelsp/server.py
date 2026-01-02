@@ -30,3 +30,13 @@ def did_change(ls: SageLanguageServer, params: types.DidChangeTextDocumentParams
         version=doc.version,
     )
     ls.text_document_publish_diagnostics(params)
+
+
+@server.feature(types.TEXT_DOCUMENT_FORMATTING)
+def format_document(ls: SageLanguageServer, params: types.DocumentFormattingParams) -> list[types.TextEdit]:
+    """Format the entire document."""
+    doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
+    all_edits = ls.pm.hook.sagelsp_format_document(doc=doc)
+    edits = [edit for plugin_edits in all_edits for edit in plugin_edits]
+    
+    return edits
