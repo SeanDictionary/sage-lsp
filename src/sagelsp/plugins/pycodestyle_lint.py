@@ -5,8 +5,12 @@ import logging
 from pygls.workspace import TextDocument
 from lsprotocol import types
 from lsprotocol.types import DiagnosticSeverity, DiagnosticTag
+from .pycodestyle_patch import pycodestyle_patch
 
 log = logging.getLogger(__name__)
+
+# Apply Sage syntax sugar patches to pycodestyle
+pycodestyle_patch()
 
 
 @hookimpl
@@ -44,6 +48,9 @@ def sagelsp_lint(doc: TextDocument) -> List[types.Diagnostic]:
         log.debug(f"- {diag.code} at line {diag.range.start.line + 1}, char {diag.range.start.character}: {diag.message}")
 
     return diagnostics
+
+# Patch for sagemath
+
 
 """
 Folowing codes are adapted from python-lsp-server

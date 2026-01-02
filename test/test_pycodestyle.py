@@ -5,13 +5,15 @@ from pygls.workspace import TextDocument
 
 
 # Code containing multiple pycodestyle errors
-code_text = """
-x = 1+1
+code_text = """\
+x = 1 + 1
 y=2
 def foo( ):
     pass
 
 z  =  3
+R.<x,y > = PolynomialRing(QQ)
+a = 1 ^^1
 """
 
 target_issues = [
@@ -22,6 +24,9 @@ target_issues = [
     "E305 expected 2 blank lines after class or function definition, found 1",
     "E221 multiple spaces before operator",
     "E222 multiple spaces after operator",
+    "E202 whitespace before '>'",
+    "E231 missing whitespace after ','",
+    "E227 missing whitespace around bitwise or shift operator",
 ]
 
 
@@ -49,7 +54,7 @@ def test_pycodestyle_diagnostics(client):
 
 def test_pycodestyle_direct():
     """Direct test of the pycodestyle plugin function"""
-    from sagelsp.plugins.pycodestyle import sagelsp_lint
+    from sagelsp.plugins.pycodestyle_lint import sagelsp_lint
     
     doc = TextDocument(
         uri="file:///test_direct.sage",
