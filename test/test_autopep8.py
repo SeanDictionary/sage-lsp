@@ -4,6 +4,13 @@ from pygls.workspace import TextDocument
 # Code containing multiple pycodestyle errors
 code_text = """\
 x = 1 +1
+y=2
+def foo( ):
+    pass
+
+z  =  3
+R.<x,y > = PolynomialRing(QQ)
+a = 1 ^^1
 """
 
 def test_pycodestyle_diagnostics(client):
@@ -18,11 +25,9 @@ def test_pycodestyle_diagnostics(client):
         version=1,
     )
     
-    res = client.formatting(
+    client.formatting(
         uri=uri,
     )
-    
-    print(res)
 
 if __name__ == "__main__":
     pytest.main([__file__])

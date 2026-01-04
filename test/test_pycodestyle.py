@@ -30,7 +30,7 @@ target_issues = [
 
 def test_pycodestyle_diagnostics(client):
     """Test that pycodestyle detects style issues"""
-    uri = "file:///test_bad.sage"
+    uri = "file:///test.sage"
     
     # Open document containing errors
     client.did_open(

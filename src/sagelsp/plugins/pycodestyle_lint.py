@@ -51,8 +51,6 @@ def sagelsp_lint(doc: TextDocument) -> List[types.Diagnostic]:
 
     return diagnostics
 
-# Patch for sagemath
-
 
 """
 Folowing codes are adapted from python-lsp-server
@@ -76,25 +74,23 @@ class PyCodeStyleReport(pycodestyle.BaseReport):
         #   e.g. no newline at end of file
         # In that case, the end offset should just be some number ~100
         # (because why not? There's nothing to underline anyways)
-        err_range = {
-            "start": {"line": line_number - 1, "character": offset},
-            "end": {
+        err_range = types.Range(
+            start=types.Position(line=line_number - 1, character=offset),
+            end=types.Position(
                 # FIXME: It's a little naiive to mark until the end of the line, can we not easily do better?
-                "line": line_number - 1,
-                "character": 100
+                line=line_number - 1,
+                character=100
                 if line_number > len(self.lines)
                 else len(self.lines[line_number - 1]),
-            },
-        }
+            ),
+        )
+
         diagnostic = types.Diagnostic(
             message=text,
             severity=_get_severity(code),
             code=code,
             source="pycodestyle",
-            range=types.Range(
-                start=types.Position(line=err_range["start"]["line"], character=err_range["start"]["character"]),
-                end=types.Position(line=err_range["end"]["line"], character=err_range["end"]["character"]),
-            )
+            range=err_range,
         )
         if code.startswith("W6"):
             diagnostic.tags = [DiagnosticTag.Deprecated]

@@ -10,7 +10,7 @@ LOG_FORMAT = "%(asctime)s - %(name)s [%(levelname)s]: %(message)s"
 
 arguments = [
     {
-        'flags': ['--log-level'],
+        'flags': ['-l', '--log'],
         'params': {
             'type': str,
             'default': 'INFO',
@@ -31,7 +31,7 @@ def main():
     parser = argparse.ArgumentParser()
     add_arguments(parser)
     args = parser.parse_args()
-    level = logging._nameToLevel.get(args.log_level.upper(), logging.INFO)
+    level = logging._nameToLevel.get(args.log.upper(), logging.INFO)
     _config_logging(level)
     log.info(f"Starting SageLSP {__version__}. By SeanDictionary")
     server.start_io()

@@ -8,11 +8,12 @@ SageMath Language Server Protocol
 
 Supported from plugins:
 
-- [pycodestyle](https://github.com/PyCQA/pycodestyle) linter for style checking
+-   [pycodestyle](https://github.com/PyCQA/pycodestyle) linter for style checking
+-   [autopep8](https://github.com/hhatto/autopep8) formatter for code formatting
 
 Supported from native code:
 
-- Semantic highlighting
+-
 
 ## Change Logs
 

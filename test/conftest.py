@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 @pytest.fixture
 def client():
-    lsp = LSPClient([sys.executable, "-m", "sagelsp"])
+    lsp = LSPClient([sys.executable, "-m", "sagelsp", "--log", "DEBUG"])
     lsp.start()
     lsp.initialize()  # Auto-initialize for all tests
     
