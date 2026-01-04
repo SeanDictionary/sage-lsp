@@ -1,7 +1,7 @@
 from pyflakes import api, reporter
 from pyflakes import messages
 import logging
-from sagelsp import hookimpl
+from sagelsp import hookimpl, SageAvaliable
 
 from pygls.workspace import TextDocument
 from typing import List
@@ -17,7 +17,9 @@ def sagelsp_lint(doc: TextDocument) -> List[types.Diagnostic]:
     diagnostics: List[types.Diagnostic] = []
 
     source = doc.source
-    # source = source.replace("\r\n", "\n").replace("\r", "\n")
+    if doc.uri.endswith(".sage") and SageAvaliable:
+        from sage.repl.preparse import preparse # type: ignore
+        source = preparse(source)
 
     reporter = DiagnosticReporter(doc.lines)
     api.check(source, doc.uri, reporter=reporter)

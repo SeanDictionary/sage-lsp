@@ -1,12 +1,15 @@
 import argparse
 import sys
 import logging
+from sagelsp import SageAvaliable
 from ._version import __version__
 from .server import server
 
 
 log = logging.getLogger(__name__)
 LOG_FORMAT = "%(asctime)s - %(name)s [%(levelname)s]: %(message)s"
+
+
 
 arguments = [
     {
@@ -24,6 +27,14 @@ arguments = [
             'version': f'SageLSP version {__version__}',
             'help': 'Show the version of SageLSP and exit.',
         },
+    },
+    {
+        'flags': ['--sage'],
+        'params': {
+            'action': 'version',
+            'version': f'Sage available: {SageAvaliable}',
+            'help': 'If Sage is usable',
+        },
     }
 ]
 
@@ -34,6 +45,7 @@ def main():
     level = logging._nameToLevel.get(args.log.upper(), logging.INFO)
     _config_logging(level)
     log.info(f"Starting SageLSP {__version__}. By SeanDictionary")
+    log.info(f"Sage available: {SageAvaliable}")
     server.start_io()
 
 

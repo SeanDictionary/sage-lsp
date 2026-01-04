@@ -2,9 +2,7 @@ import pytest
 from pygls.workspace import TextDocument
 
 source = """\
-x = 1 + 1
-y = 2
-def foo():
+R.<x, y> = PolynomialRing(QQ)
 """
 
 
