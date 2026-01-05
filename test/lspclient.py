@@ -1,16 +1,17 @@
 from typing import Any, Dict
 from lspclientbase import LSPClientBase
 
+
 class LSPClient(LSPClientBase):
     def hover(self, uri: str, line: int, character: int) -> Dict[str, Any]:
         """
         Request hover information
-        
+
         Args:
             uri: Document URI
             line: Line number (0-based)
             character: Character offset (0-based)
-            
+
         Returns:
             Hover response result
         """
@@ -18,14 +19,14 @@ class LSPClient(LSPClientBase):
             "textDocument": {"uri": uri},
             "position": {"line": line, "character": character}
         })
-        
+
         response = self.read_response(expected_id=request_id)
         return response.get("result")
 
     def did_open(self, uri: str, language_id: str, text: str, version: int = 1):
         """
         Notify server that document is opened
-        
+
         Args:
             uri: Document URI
             language_id: Language identifier
@@ -40,11 +41,11 @@ class LSPClient(LSPClientBase):
                 "text": text
             }
         })
-    
+
     def did_change(self, uri: str, text: str, version: int = 1):
         """
         Notify server that document is changed
-        
+
         Args:
             uri: Document URI
             text: New document content
@@ -65,12 +66,12 @@ class LSPClient(LSPClientBase):
     def formatting(self, uri: str):
         """
         Request document formatting
-        
+
         Args:
             uri: Document URI
             text: Document content
             version: Document version
-            
+
         Returns:
             List of TextEdits for formatting
         """
@@ -81,6 +82,26 @@ class LSPClient(LSPClientBase):
                 "insertSpaces": True
             }
         })
-        
+
+        response = self.read_response(expected_id=request_id)
+        return response.get("result")
+
+    def definition(self, uri: str, line: int, character: int):
+        """
+        Request definition locations
+
+        Args:
+            uri: Document URI
+            line: Line number (0-based)
+            character: Character offset (0-based)
+
+        Returns:
+            Definition response result
+        """
+        request_id = self.send_request("textDocument/definition", {
+            "textDocument": {"uri": uri},
+            "position": {"line": line, "character": character}
+        })
+
         response = self.read_response(expected_id=request_id)
         return response.get("result")
