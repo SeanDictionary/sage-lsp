@@ -8,6 +8,9 @@ from typing import List
 from lsprotocol import types
 from lsprotocol.types import DiagnosticSeverity
 
+if SageAvaliable:
+    from sagelsp import SymbolsCache, SymbolStatus
+
 log = logging.getLogger(__name__)
 
 
@@ -17,7 +20,7 @@ def sagelsp_lint(doc: TextDocument) -> List[types.Diagnostic]:
     diagnostics: List[types.Diagnostic] = []
 
     source = doc.source
-    if doc.uri.endswith(".sage") and SageAvaliable:
+    if SageAvaliable and doc.uri.endswith(".sage"):
         from sage.repl.preparse import preparse # type: ignore
         source = preparse(source)
 
@@ -101,6 +104,14 @@ class DiagnosticReporter(reporter.Reporter):
                 severity = DiagnosticSeverity.Error
                 break
         
+        if SageAvaliable and isinstance(message, messages.UndefinedName):
+            name = message.message_args[0]
+            symbol = SymbolsCache.get(name)
+            if symbol.status == SymbolStatus.FOUND:
+                # Ignore undefined name if we can find it in Sage
+                log.debug(f"Undefined name {name} found in Sage from {symbol.import_path}")
+                return
+
         diagnostic = types.Diagnostic(
             range=err_range,
             message=message.message % message.message_args,

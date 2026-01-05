@@ -6,6 +6,7 @@ description = "SageMath Language Server Protocol"
 dependencies = [
     "pygls==2.0.0",
     "pluggy==1.6.0",
+    "platformdirs==4.4.0",
     "pycodestyle==2.14.0",
     "autopep8==2.3.2",
     "pyflakes==3.4.0",

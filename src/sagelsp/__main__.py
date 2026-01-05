@@ -1,7 +1,7 @@
 import argparse
 import sys
 import logging
-from sagelsp import SageAvaliable
+from sagelsp import SageAvaliable, CachePath
 from ._version import __version__
 from .server import server
 

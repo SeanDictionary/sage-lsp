@@ -2,7 +2,9 @@ import pytest
 from pygls.workspace import TextDocument
 
 source = """\
+v = VectorSpace(ZZ, 3)
 R.<x, y> = PolynomialRing(QQ)
+A = Matrix(RR, [1])
 """
 
 
