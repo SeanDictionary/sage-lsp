@@ -10,10 +10,11 @@ Supported from plugins:
 
 -   [pycodestyle](https://github.com/PyCQA/pycodestyle) linter for style checking
 -   [autopep8](https://github.com/hhatto/autopep8) formatter for code formatting
+-   [pyflakes](https://github.com/PyCQA/pyflakes) linter for error checking
 
 Supported from native code:
 
--
+-   Local symbols cache for Sage
 
 ## Change Logs
 

@@ -3,6 +3,7 @@ from sagelsp.plugins.manager import create_plugin_manager
 from pygls.lsp.server import LanguageServer
 from pygls.workspace import TextDocument
 from lsprotocol import types
+from typing import Union, List
 import logging
 
 log = logging.getLogger(__name__)
@@ -18,10 +19,10 @@ server = SageLanguageServer(NAME, __version__)
 
 @server.feature(types.TEXT_DOCUMENT_DID_OPEN)
 @server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
-def did_change(ls: SageLanguageServer, params: types.DidChangeTextDocumentParams):
-    """Handle document change events."""
+def open_change(ls: SageLanguageServer, params: Union[types.DidOpenTextDocumentParams, types.DidChangeTextDocumentParams]):
+    """Handle document open and change events to trigger linting."""
     doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
-    all_diagnostics = ls.pm.hook.sagelsp_lint(doc=doc)
+    all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_lint(doc=doc)
     diagnostics = [diag for plugin_diags in all_diagnostics for diag in plugin_diags]
 
     params = types.PublishDiagnosticsParams(
@@ -33,10 +34,30 @@ def did_change(ls: SageLanguageServer, params: types.DidChangeTextDocumentParams
 
 
 @server.feature(types.TEXT_DOCUMENT_FORMATTING)
-def format_document(ls: SageLanguageServer, params: types.DocumentFormattingParams) -> list[types.TextEdit]:
+def format_document(ls: SageLanguageServer, params: types.DocumentFormattingParams) -> List[types.TextEdit]:
     """Format the entire document."""
     doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
-    all_edits = ls.pm.hook.sagelsp_format_document(doc=doc)
+    all_edits: List[List[types.TextEdit]] = ls.pm.hook.sagelsp_format_document(doc=doc)
     edits = [edit for plugin_edits in all_edits for edit in plugin_edits]
     
     return edits
+
+
+@server.feature(types.TEXT_DOCUMENT_DEFINITION)
+def definition(ls: SageLanguageServer, params: types.DefinitionParams):
+    """Provide definition for a symbol."""
+    doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
+    position: types.Position = params.position
+    all_locations: List[List[types.Location]] = ls.pm.hook.sagelsp_definition(doc=doc, position=position)
+    locations = [loc for plugin_locs in all_locations for loc in plugin_locs]
+
+    return locations
+
+
+@server.feature(types.TEXT_DOCUMENT_TYPE_DEFINITION)
+def type_definition(ls: SageLanguageServer, params: types.TypeDefinitionParams):
+    """Provide type definition for a symbol."""
+    doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
+    position: types.Position = params.position
+    all_locations: List[List[types.Location]] = ls.pm.hook.sagelsp_type_definition(doc=doc, position=position)
+    locations = [loc for plugin_locs in all_locations for loc in plugin_locs]

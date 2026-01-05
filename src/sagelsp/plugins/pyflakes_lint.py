@@ -109,7 +109,7 @@ class DiagnosticReporter(reporter.Reporter):
             symbol = SymbolsCache.get(name)
             if symbol.status == SymbolStatus.FOUND:
                 # Ignore undefined name if we can find it in Sage
-                log.debug(f"Undefined name {name} found in Sage from {symbol.import_path}")
+                # log.debug(f"Undefined name {name} found in Sage from {symbol.import_path}")
                 return
 
         diagnostic = types.Diagnostic(

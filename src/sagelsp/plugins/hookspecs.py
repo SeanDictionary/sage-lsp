@@ -17,3 +17,13 @@ def sagelsp_format_document(doc: TextDocument) -> List[types.TextEdit]:
 def sagelsp_format_range(doc: TextDocument, start_line: int, end_line: int) -> List[types.TextEdit]:
     """Format a range of the document using autopep8."""
     pass
+
+@hookspec
+def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[types.Location]:
+    """Provide definition for a symbol."""
+    pass
+
+@hookspec
+def sagelsp_type_definition(doc: TextDocument, position: types.Position) -> List[types.Location]:
+    """Provide type definition for a symbol."""
+    pass

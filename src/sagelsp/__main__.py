@@ -33,7 +33,7 @@ arguments = [
         'params': {
             'action': 'version',
             'version': f'Sage available: {SageAvaliable}',
-            'help': 'If Sage is usable',
+            'help': 'Check if Sage is available and exit.',
         },
     }
 ]
