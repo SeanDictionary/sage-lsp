@@ -8,6 +8,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class SageLanguageServer(LanguageServer):
     def __init__(self, *args):
         super().__init__(*args)
@@ -16,6 +17,7 @@ class SageLanguageServer(LanguageServer):
 
 
 server = SageLanguageServer(NAME, __version__)
+
 
 @server.feature(types.TEXT_DOCUMENT_DID_OPEN)
 @server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
@@ -39,7 +41,7 @@ def format_document(ls: SageLanguageServer, params: types.DocumentFormattingPara
     doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
     all_edits: List[List[types.TextEdit]] = ls.pm.hook.sagelsp_format_document(doc=doc)
     edits = [edit for plugin_edits in all_edits for edit in plugin_edits]
-    
+
     return edits
 
 

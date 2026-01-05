@@ -1,6 +1,8 @@
 import jedi
 from jedi.api import classes
 import logging
+
+from pyparsing import PostParseReturnType
 from sagelsp import hookimpl, SageAvaliable
 
 from pygls.uris import from_fs_path
@@ -11,6 +13,7 @@ from lsprotocol import types
 log = logging.getLogger(__name__)
 
 MAX_JEDI_GOTO_HOPS = 100
+
 
 def _resolve_definition(name: classes.Name, script: jedi.Script) -> classes.Name:
     for _ in range(MAX_JEDI_GOTO_HOPS):
@@ -29,6 +32,12 @@ def _resolve_definition(name: classes.Name, script: jedi.Script) -> classes.Name
         name = defs[0]
 
     return name
+
+
+def _sage_definition(name: classes.Name) -> classes.Name:
+    """Try to resolve Sage-specific definitions."""
+    # Maybe it's not nessary?
+    pass
 
 
 @hookimpl
@@ -61,20 +70,19 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
         if name.module_path is None:
             continue
 
+        def_range = types.Range(
+            start=types.Position(line=name.line - 1, character=name.column),
+            end=types.Position(line=name.line - 1, character=name.column + len(name.name),),
+        )
         locations.append(
             types.Location(
                 uri=from_fs_path(str(name.module_path)),
-                range=types.Range(
-                    start=types.Position(
-                        line=name.line - 1,
-                        character=name.column,
-                    ),
-                    end=types.Position(
-                        line=name.line - 1,
-                        character=name.column + len(name.name),
-                    ),
-                ),
+                range=def_range,
             )
         )
 
-    return locations or None
+    if locations:
+        log.info(f"jedi found {len(locations)} definitions for symbol at line {line + 1}, char {character} in {doc.uri}")
+        for loc in locations:
+            log.debug(f"- Definition at {loc.uri} line {loc.range.start.line + 1}, char {loc.range.start.character}")
+        return locations

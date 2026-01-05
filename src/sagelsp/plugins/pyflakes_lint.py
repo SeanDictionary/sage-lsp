@@ -21,7 +21,7 @@ def sagelsp_lint(doc: TextDocument) -> List[types.Diagnostic]:
 
     source = doc.source
     if SageAvaliable and doc.uri.endswith(".sage"):
-        from sage.repl.preparse import preparse # type: ignore
+        from sage.repl.preparse import preparse  # type: ignore
         source = preparse(source)
 
     reporter = DiagnosticReporter(doc.lines)
@@ -52,11 +52,12 @@ PYFLAKES_ERROR_MESSAGES = (
     messages.TwoStarredExpressions,
 )
 
+
 class DiagnosticReporter(reporter.Reporter):
     def __init__(self, lines) -> None:
         self.lines = lines
         self.diagnostics = []
-    
+
     def syntaxError(self, filename, msg, lineno, offset, text):
         # We've seen that lineno and offset can sometimes be None
         lineno = lineno or 1
@@ -97,13 +98,13 @@ class DiagnosticReporter(reporter.Reporter):
             start=types.Position(line=message.lineno - 1, character=message.col),
             end=types.Position(line=message.lineno - 1, character=len(self.lines[message.lineno - 1])),
         )
-    
+
         severity = DiagnosticSeverity.Warning
         for message_type in PYFLAKES_ERROR_MESSAGES:
             if isinstance(message, message_type):
                 severity = DiagnosticSeverity.Error
                 break
-        
+
         if SageAvaliable and isinstance(message, messages.UndefinedName):
             name = message.message_args[0]
             symbol = SymbolsCache.get(name)

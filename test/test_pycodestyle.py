@@ -31,7 +31,7 @@ target_issues = [
 def test_pycodestyle_diagnostics(client):
     """Test that pycodestyle detects style issues"""
     uri = "file:///test.sage"
-    
+
     # Open document containing errors
     client.did_open(
         uri=uri,
@@ -39,35 +39,35 @@ def test_pycodestyle_diagnostics(client):
         language_id="sagemath",
         version=1,
     )
-    
+
     # Modify the document to trigger diagnostics
     client.did_change(
         uri=uri,
         text=code_text,
         version=1,
     )
-    
+
     print("\nTest completed. Check the output above for pycodestyle diagnostics.")
 
 
 def _test_pycodestyle_direct():
     """Direct test of the pycodestyle plugin function"""
     from sagelsp.plugins.pycodestyle_lint import sagelsp_lint
-    
+
     doc = TextDocument(
         uri="file:///test_direct.sage",
         source=code_text,
         language_id="sagemath",
         version=1
     )
-    
+
     # 直接调用 lint 函数
     diagnostics = sagelsp_lint(doc)
-    
+
     print(f"\nDirect call to sagelsp_lint returned {len(diagnostics)} diagnostics:")
     for diag in diagnostics:
         print(f"- {diag.code} at line {diag.range.start.line + 1}, char {diag.range.start.character}: {diag.message}")
-    
+
     # Should detect at least some issues
     assert len(diagnostics) > 0, "Expected at least one style issue to be detected"
 

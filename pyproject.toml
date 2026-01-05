@@ -31,6 +31,7 @@ sagelsp = "sagelsp.__main__:main"
 pycodestyle = "sagelsp.plugins.pycodestyle_lint"
 autopep8 = "sagelsp.plugins.autopep8_format"
 pyflakes = "sagelsp.plugins.pyflakes_lint"
+jedi_definition = "sagelsp.plugins.jedi_definition"
 
 [tool.pytest.ini_options]
 addopts = "-s -v --tb=short"

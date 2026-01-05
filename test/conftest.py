@@ -3,9 +3,11 @@
 import sys
 import os
 import pytest
+from color import Color
+from sagelsp import SageAvaliable
 from lspclient import LSPClient
 
-# 添加 test 目录到 Python 路径
+# add src directory to sys.path for imports
 sys.path.insert(0, os.path.dirname(__file__))
 
 @pytest.fixture
@@ -21,3 +23,13 @@ def client():
             lsp.shutdown()
     finally:
         lsp.stop()
+
+def pytest_sessionstart(session):
+    """add info at session start"""
+    pass
+
+def pytest_report_header(config):
+    """add info to the report header"""
+    return [
+        f"Sage Available: {Color.green(str(SageAvaliable)) if SageAvaliable else Color.red(str(SageAvaliable))}",
+    ]
