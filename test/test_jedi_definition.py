@@ -1,4 +1,3 @@
-from sagelsp import SageAvaliable
 import pytest
 from pygls.workspace import TextDocument
 
@@ -9,22 +8,19 @@ def add(a, b):
 result = add(2, 3)
 
 print(result)
+R = PolynomialRing(ZZ, names=('x',)); (x,) = R._first_ngens(1)
 """
 
-# code_text = """\
-# from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-# from sage.rings.integer_ring import ZZ
+code_text = """\
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.integer_ring import ZZ
 
-# PolynomialRing(ZZ)
-# """
-
-# if SageAvaliable:
-#     from sage.repl.preparse import preparse  # type: ignore
-#     code_text = preparse(code_text)
-#     print(code_text)
+R.<x> = PolynomialRing(ZZ)
+f = x^2 + 2*x + 1
+"""
 
 
-def test_jedi_definition(client):
+def _test_jedi_definition(client):
     """Test that jedi provides correct definition locations"""
     uri = "file:///test.sage"
 
@@ -36,19 +32,19 @@ def test_jedi_definition(client):
         version=1,
     )
 
-    # Request definition for 'add' in line 2, character 11
+    # Request definition for 'add' in line 2, character 10
     # 'add' is in line 2, character [9:12]
     # 'result' is in line 4, character [6:12]
     response = client.definition(
         uri=uri,
-        line=2,
-        character=10,
+        line=4,
+        character=4,
     )
 
     print("\nDefinition Response:", response)
 
 
-def _test_jedi_definition_direct():
+def test_jedi_definition_direct():
     """Direct test of the jedi definition plugin function"""
     from sagelsp.plugins.jedi_definition import sagelsp_definition
     from lsprotocol import types
@@ -61,7 +57,7 @@ def _test_jedi_definition_direct():
 
     # 'add' is in line 2, character [9:12]
     # 'result' is in line 4, character [6:12]
-    position = types.Position(line=3, character=0)
+    position = types.Position(line=4, character=4)
 
     locations = sagelsp_definition(doc, position)
 

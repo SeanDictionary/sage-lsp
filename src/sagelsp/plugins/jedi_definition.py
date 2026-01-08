@@ -1,8 +1,10 @@
 import jedi
 from jedi.api import classes
+import re
 import logging
 
-from pyparsing import PostParseReturnType
+from matplotlib import lines
+
 from sagelsp import hookimpl, SageAvaliable
 
 from pygls.uris import from_fs_path
@@ -13,6 +15,7 @@ from lsprotocol import types
 log = logging.getLogger(__name__)
 
 MAX_JEDI_GOTO_HOPS = 100
+SYMBOL = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*")
 
 
 def _resolve_definition(name: classes.Name, script: jedi.Script) -> classes.Name:
@@ -34,16 +37,60 @@ def _resolve_definition(name: classes.Name, script: jedi.Script) -> classes.Name
     return name
 
 
-def _sage_definition(name: classes.Name) -> classes.Name:
-    """Try to resolve Sage-specific definitions."""
-    # Maybe it's not nessary?
-    pass
+# TODO: Add import_path for jedi-definition of Sage symbols
+
+
+def _sage_preparse(source_orig: str, position: types.Position):
+    """Trace column offest for sage-preparse code"""
+    from sage.repl.preparse import preparse  # type: ignore
+
+    source_prep = preparse(source_orig)
+
+    lines_orig = source_orig.splitlines()
+    line_orig = lines_orig[position.line]
+
+    lines_prep = source_prep.splitlines()
+    line_prep = lines_prep[position.line]
+
+    if line_orig != line_prep:
+        match = SYMBOL.finditer(line_orig)
+        for m in match:
+            if m.start() <= position.character <= m.end():
+                symbol_name = m.group()
+                break
+        else:
+            return None, None
+
+        # FIXME: it can't handel multiple same symbols in one line
+        new_character = line_prep.find(symbol_name)
+        new_position = types.Position(
+            line=position.line,
+            character=new_character,
+        )
+
+        return source_prep, new_position
+    else:
+        return source_prep, position
 
 
 @hookimpl
 def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[types.Location]:
     """Provide definition for a symbol."""
+    # ?OPTIMIZE: If it need a delay when user is typing?
     source = doc.source
+
+    # Preparse Sage code and offset position if Sage is available
+    if SageAvaliable:
+        source_prep, new_position = _sage_preparse(source, position)
+
+        lines_orig = source.splitlines()
+        lines_prep = source_prep.splitlines()
+        if source_prep is not None and new_position is not None:
+            source = source_prep
+            position = new_position
+        else:
+            return None
+
     path = doc.path
     line = position.line
     character = position.character
@@ -57,6 +104,7 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
             follow_builtin_imports=True,
         )
     except Exception as e:
+        log.error(f"jedi.Script.goto failed for {doc.uri} at line {line + 1}, char {character}: {e}")
         return None
 
     locations: List[types.Location] = []
@@ -70,10 +118,24 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
         if name.module_path is None:
             continue
 
-        def_range = types.Range(
-            start=types.Position(line=name.line - 1, character=name.column),
-            end=types.Position(line=name.line - 1, character=name.column + len(name.name),),
-        )
+        # If the finally definition is in the preparsed code which is different from the original code,
+        # we need to map the position back to the original source code.
+        if SageAvaliable and doc.path == str(name.module_path) and lines_orig[name.line - 1] != lines_prep[name.line - 1]:
+            def_range = types.Range(
+                start=types.Position(
+                    line=name.line - 1,
+                    character=lines_orig[name.line - 1].find(name.name),
+                ),
+                end=types.Position(
+                    line=name.line - 1,
+                    character=lines_orig[name.line - 1].find(name.name) + len(name.name),
+                ),
+            )
+        else:
+            def_range = types.Range(
+                start=types.Position(line=name.line - 1, character=name.column),
+                end=types.Position(line=name.line - 1, character=name.column + len(name.name),),
+            )
         locations.append(
             types.Location(
                 uri=from_fs_path(str(name.module_path)),
