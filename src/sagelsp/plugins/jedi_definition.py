@@ -1,3 +1,4 @@
+from encodings import undefined
 import jedi
 from jedi.api import classes
 import re
@@ -37,20 +38,41 @@ def _resolve_definition(name: classes.Name, script: jedi.Script) -> classes.Name
     return name
 
 
-# TODO: Add import_path for jedi-definition of Sage symbols
+def _sage_add_import_path(doc: TextDocument):
+    """Add import path for Sage symbols to help jedi definition resolution"""
+    from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI
+
+    import_path_list = []
+    if doc.uri not in UNDEFINED_NAMES_URI:
+        # In theory this should not happen
+        log.error(f"No sage symbols found for {doc.uri} in UNDEFINED_NAME_URI")
+        return "", 0
+
+    undefined_names = UNDEFINED_NAMES_URI[doc.uri]
+    for name, import_path in undefined_names.items():
+        import_path_list.append(f"from {import_path} import {name}\n")
+    
+    return "".join(import_path_list), len(import_path_list)
 
 
-def _sage_preparse(source_orig: str, position: types.Position):
+def _sage_preparse(doc: TextDocument, position: types.Position):
     """Trace column offest for sage-preparse code"""
     from sage.repl.preparse import preparse  # type: ignore
 
+    source_orig = doc.source
     source_prep = preparse(source_orig)
+
+    # Add import paths for undefined sage symbols
+    # And offset the line number accordingly
+    import_path_text, import_num = _sage_add_import_path(doc)
+    source_prep = import_path_text + source_prep
+    pos_prep_line = position.line + import_num
 
     lines_orig = source_orig.splitlines()
     line_orig = lines_orig[position.line]
 
     lines_prep = source_prep.splitlines()
-    line_prep = lines_prep[position.line]
+    line_prep = lines_prep[pos_prep_line]
 
     if line_orig != line_prep:
         match = SYMBOL.finditer(line_orig)
@@ -64,7 +86,7 @@ def _sage_preparse(source_orig: str, position: types.Position):
         # FIXME: it can't handel multiple same symbols in one line
         new_character = line_prep.find(symbol_name)
         new_position = types.Position(
-            line=position.line,
+            line=pos_prep_line,
             character=new_character,
         )
 
@@ -81,7 +103,7 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
 
     # Preparse Sage code and offset position if Sage is available
     if SageAvaliable:
-        source_prep, new_position = _sage_preparse(source, position)
+        source_prep, new_position = _sage_preparse(doc, position)
 
         lines_orig = source.splitlines()
         lines_prep = source_prep.splitlines()

@@ -4,7 +4,7 @@ import logging
 from sagelsp import hookimpl, SageAvaliable
 
 from pygls.workspace import TextDocument
-from typing import List
+from typing import List, Dict
 from lsprotocol import types
 from lsprotocol.types import DiagnosticSeverity
 
@@ -12,7 +12,7 @@ if SageAvaliable:
     from sagelsp import SymbolsCache, SymbolStatus
 
 log = logging.getLogger(__name__)
-
+UNDEFINED_NAMES_URI: Dict[str, Dict[str, str]] = {}    # this dict is used to store sage symbols for different uris
 
 @hookimpl
 def sagelsp_lint(doc: TextDocument) -> List[types.Diagnostic]:
@@ -26,6 +26,10 @@ def sagelsp_lint(doc: TextDocument) -> List[types.Diagnostic]:
 
     reporter = DiagnosticReporter(doc.lines)
     api.check(source, doc.uri, reporter=reporter)
+
+    # Store sage symbols
+    UNDEFINED_NAMES = reporter.UNDEFINED_NAMES
+    UNDEFINED_NAMES_URI[doc.uri] = UNDEFINED_NAMES
 
     diagnostics = reporter.diagnostics
     log.info(f"pyflakes found {len(diagnostics)} issues in {doc.uri}")
@@ -57,6 +61,7 @@ class DiagnosticReporter(reporter.Reporter):
     def __init__(self, lines) -> None:
         self.lines = lines
         self.diagnostics = []
+        self.UNDEFINED_NAMES = {}
 
     def syntaxError(self, filename, msg, lineno, offset, text):
         # We've seen that lineno and offset can sometimes be None
@@ -111,6 +116,7 @@ class DiagnosticReporter(reporter.Reporter):
             if symbol.status == SymbolStatus.FOUND:
                 # Ignore undefined name if we can find it in Sage
                 # log.debug(f"Undefined name {name} found in Sage from {symbol.import_path}")
+                self.UNDEFINED_NAMES[name] = symbol.import_path
                 return
 
         diagnostic = types.Diagnostic(

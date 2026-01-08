@@ -7,10 +7,10 @@ from color import Color
 class LSPClientBase:    
     def __init__(self, server_command: List[str]):
         """
-        初始化 LSP 客户端
+        Initialize LSP client
         
         Args:
-            server_command: 启动服务器的命令，如 [sys.executable, "-m", "sagelsp"]
+            server_command: start command for LSP server, e.g. ["pylsp"]
         """
         self.server_command = server_command
         self.process: Optional[subprocess.Popen] = None
@@ -36,14 +36,14 @@ class LSPClientBase:
     
     def send_request(self, method: str, params: Optional[Dict[str, Any]] = None) -> int:
         """
-        发送 JSON-RPC 请求
+        send JSON-RPC request and return request ID
         
         Args:
-            method: LSP 方法名
-            params: 请求参数
+            method: LSP method name
+            params: request parameters
             
         Returns:
-            请求 ID
+            request ID
         """
         if method == "shutdown":
             print(file=sys.stderr)
@@ -70,11 +70,11 @@ class LSPClientBase:
     
     def send_notification(self, method: str, params: Optional[Dict[str, Any]] = None):
         """
-        发送 JSON-RPC 通知（不需要响应）
+        Send JSON-RPC notification
         
         Args:
-            method: LSP 方法名
-            params: 通知参数
+            method: LSP method name
+            params: request parameters
         """
         if not self.process:
             raise RuntimeError("Server not started")
@@ -140,13 +140,13 @@ class LSPClientBase:
     
     def initialize(self, root_uri: Optional[str] = None) -> Dict[str, Any]:
         """
-        执行 LSP initialize 握手
+        Initialize LSP server
         
         Args:
-            root_uri: 工作区根目录 URI
+            root_uri: workspace 根 URI
             
         Returns:
-            服务器能力信息
+            Initialize response result
         """
         request_id = self.send_request("initialize", {
             "processId": None,
