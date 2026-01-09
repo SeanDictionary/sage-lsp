@@ -49,7 +49,7 @@ def _sage_add_import_path(doc: TextDocument):
         return "", 0
 
     undefined_names = UNDEFINED_NAMES_URI[doc.uri]
-    log.debug(undefined_names)
+    log.debug(f"Detected sage symbols in {doc.uri}: {undefined_names}")
     for name, import_path in undefined_names.items():
         import_path_list.append(f"from {import_path} import {name}\n")
     
