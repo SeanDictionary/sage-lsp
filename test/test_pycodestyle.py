@@ -4,14 +4,7 @@ from pygls.workspace import TextDocument
 
 # Code containing multiple pycodestyle errors
 code_text = """\
-x = 1 + 1
-y=2
-def foo( ):
-    pass
-
-z  =  3
-R.<x,y > = PolynomialRing(QQ)
-a = 1 ^^1
+f = x ^ 3 - 2*x + 1
 """
 
 target_issues = [

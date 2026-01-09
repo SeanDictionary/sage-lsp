@@ -22,6 +22,7 @@ def extraneous_whitespace(logical_line=None):
 
     yield from pycodestyle.extraneous_whitespace(logical_line)
 
+
 def missing_whitespace(logical_line=None, tokens=None):
     """
     Patch for `pycodestyle.missing_whitespace` to support Sage syntax sugar.
@@ -43,7 +44,7 @@ def missing_whitespace(logical_line=None, tokens=None):
                 if logical_line[inner.end() - 1] != ' ':
                     yield inner.start() + 1, "E231 missing whitespace after ','"
         return
-    
+
     # 1 ^^ 2
     # Fix: E225, E227
     if "^^" in logical_line:
@@ -54,9 +55,10 @@ def missing_whitespace(logical_line=None, tokens=None):
             if logical_line[inner.end() - 1] != ' ':
                 yield inner.end() - 1, "E227 missing whitespace around bitwise or shift operator"
         return
-    
+
     # Otherwise, call the original function
     yield from pycodestyle.missing_whitespace(logical_line, tokens)
+
 
 FUNCS = [
     (
@@ -79,19 +81,23 @@ def pycodestyle_patch(funcs=FUNCS):
         pycodestyle._checks['logical_line'][new_func] = (err_codes, args)
         del pycodestyle._checks['logical_line'][orig_func]
 
+
 if __name__ == "__main__":
     pycodestyle_patch()
     # test code
-    lines = [
-        "R.<x, y, z> = PolynominalRing(QQ)\n",
-        "a = 123 **321\n",
-        "b = 123 ^^ 123\n"
-    ]
-    
+    source = """\
+a = 1+1
+"""
+    lines = source.splitlines(keepends=True)
+
     # test codestyle checker
     checker = pycodestyle.Checker(lines=lines)
     print(checker.check_all())
 
+    options = {
+
+    }
+
     # test code formatter
-    fixed = autopep8.fix_code("".join(lines))
+    fixed = autopep8.fix_code(source, options=options)
     print(fixed)

@@ -26,7 +26,7 @@ arguments = [
             'action': 'version',
             'version': f'SageLSP version {__version__}',
             'help': 'Show the version of SageLSP and exit.',
-        },
+        }, 
     },
     {
         'flags': ['--sage'],

@@ -1,5 +1,9 @@
+from colorama import Style
+from igraph import config
 from sagelsp import NAME, __version__
 from sagelsp.plugins.manager import create_plugin_manager
+from sagelsp.config import StyleConfig
+
 from pygls.lsp.server import LanguageServer
 from pygls.workspace import TextDocument
 from lsprotocol import types
@@ -8,15 +12,29 @@ import logging
 
 log = logging.getLogger(__name__)
 
-
 class SageLanguageServer(LanguageServer):
     def __init__(self, *args):
         super().__init__(*args)
         self.pm = create_plugin_manager()
         self.log = log
+        self.StyleConfig = None
+
+    def refresh_styleconfig(self):
+        """Refresh style configuration from workspace."""
+        self.StyleConfig = StyleConfig(self.workspace)
 
 
 server = SageLanguageServer(NAME, __version__)
+
+
+@server.feature(types.INITIALIZE)
+def initialize(ls: SageLanguageServer, params):
+    ls.refresh_styleconfig()
+
+
+@server.feature(types.WORKSPACE_DID_CHANGE_CONFIGURATION)
+def did_change_configuration(ls: SageLanguageServer, params):
+    ls.refresh_styleconfig()
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_OPEN)
@@ -24,7 +42,7 @@ server = SageLanguageServer(NAME, __version__)
 def open_change(ls: SageLanguageServer, params: Union[types.DidOpenTextDocumentParams, types.DidChangeTextDocumentParams]):
     """Handle document open and change events to trigger linting."""
     doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
-    all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_lint(doc=doc)
+    all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_lint(doc=doc, config=ls.StyleConfig)
     diagnostics = [diag for plugin_diags in all_diagnostics for diag in plugin_diags]
 
     params = types.PublishDiagnosticsParams(
@@ -39,7 +57,19 @@ def open_change(ls: SageLanguageServer, params: Union[types.DidOpenTextDocumentP
 def format_document(ls: SageLanguageServer, params: types.DocumentFormattingParams) -> List[types.TextEdit]:
     """Format the entire document."""
     doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
-    all_edits: List[List[types.TextEdit]] = ls.pm.hook.sagelsp_format_document(doc=doc)
+    all_edits: List[List[types.TextEdit]] = ls.pm.hook.sagelsp_format_document(doc=doc, config=ls.StyleConfig)
+    edits = [edit for plugin_edits in all_edits for edit in plugin_edits]
+
+    return edits
+
+
+@server.feature(types.TEXT_DOCUMENT_RANGE_FORMATTING)
+def format_range(ls: SageLanguageServer, params: types.DocumentRangeFormattingParams) -> List:
+    """Format a range of the document."""
+    doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
+    start_line = params.range.start.line
+    end_line = params.range.end.line
+    all_edits: List[List[types.TextEdit]] = ls.pm.hook.sagelsp_format_range(doc=doc, start_line=start_line, end_line=end_line, config=ls.StyleConfig)
     edits = [edit for plugin_edits in all_edits for edit in plugin_edits]
 
     return edits

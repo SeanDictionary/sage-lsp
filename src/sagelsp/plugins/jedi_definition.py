@@ -49,6 +49,7 @@ def _sage_add_import_path(doc: TextDocument):
         return "", 0
 
     undefined_names = UNDEFINED_NAMES_URI[doc.uri]
+    log.debug(undefined_names)
     for name, import_path in undefined_names.items():
         import_path_list.append(f"from {import_path} import {name}\n")
     
@@ -105,11 +106,11 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
     if SageAvaliable:
         source_prep, new_position = _sage_preparse(doc, position)
 
-        lines_orig = source.splitlines()
-        lines_prep = source_prep.splitlines()
         if source_prep is not None and new_position is not None:
             source = source_prep
             position = new_position
+            lines_orig = source.splitlines()
+            lines_prep = source_prep.splitlines()
         else:
             return None
 

@@ -1,6 +1,7 @@
 import pycodestyle
 import logging
 from sagelsp import hookimpl
+from sagelsp.config import StyleConfig
 
 from pygls.workspace import TextDocument
 from typing import List
@@ -16,7 +17,7 @@ pycodestyle_patch()
 
 
 @hookimpl
-def sagelsp_lint(doc: TextDocument) -> List[types.Diagnostic]:
+def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
     """Lint the document using pycodestyle."""
     diagnostics: List[types.Diagnostic] = []
 
@@ -24,17 +25,9 @@ def sagelsp_lint(doc: TextDocument) -> List[types.Diagnostic]:
     source = source.replace("\r\n", "\n").replace("\r", "\n")
     lines = source.splitlines(keepends=True)
 
-    # TODO: Support custom config
-    config = {
-        "exclude": None,
-        "filename": None,
-        "hang_closing": None,
-        "ignore": None,
-        "max_line_length": None,
-        "indent_size": None,
-        "select": None,
-    }
-    config = {k: v for k, v in config.items() if v}
+    # Load configuration from global and project sources
+    config = config.get_pycodestyle_config()
+    
     style = pycodestyle.StyleGuide(**config)
 
     checker = pycodestyle.Checker(

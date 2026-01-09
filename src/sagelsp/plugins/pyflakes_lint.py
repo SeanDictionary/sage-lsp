@@ -2,6 +2,7 @@ from pyflakes import api, reporter
 from pyflakes import messages
 import logging
 from sagelsp import hookimpl, SageAvaliable
+from sagelsp.config import StyleConfig
 
 from pygls.workspace import TextDocument
 from typing import List, Dict
@@ -15,7 +16,7 @@ log = logging.getLogger(__name__)
 UNDEFINED_NAMES_URI: Dict[str, Dict[str, str]] = {}    # this dict is used to store sage symbols for different uris
 
 @hookimpl
-def sagelsp_lint(doc: TextDocument) -> List[types.Diagnostic]:
+def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
     """Lint the document using pyflakes."""
     diagnostics: List[types.Diagnostic] = []
 

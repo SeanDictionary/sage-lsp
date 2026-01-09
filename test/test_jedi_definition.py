@@ -12,10 +12,9 @@ R = PolynomialRing(ZZ, names=('x',)); (x,) = R._first_ngens(1)
 """
 
 code_text = """\
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-
 R.<x> = PolynomialRing(ZZ)
-f = x^2 + 2*x + 1
+
+f = x ^ 3 - 2 * x + 1
 """
 
 
@@ -37,7 +36,7 @@ def test_jedi_definition(client):
     response = client.definition(
         uri=uri,
         line=2,
-        character=8,
+        character=4,
     )
 
     print("\nDefinition Response:", response)
