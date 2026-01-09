@@ -54,7 +54,6 @@ def _test_pycodestyle_direct():
         version=1
     )
 
-    # 直接调用 lint 函数
     diagnostics = sagelsp_lint(doc)
 
     print(f"\nDirect call to sagelsp_lint returned {len(diagnostics)} diagnostics:")

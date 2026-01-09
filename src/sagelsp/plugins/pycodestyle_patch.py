@@ -46,7 +46,7 @@ def missing_whitespace(logical_line=None, tokens=None):
         return
 
     # 1 ^^ 2
-    # Fix: E225, E227
+    # Fix: E227
     if "^^" in logical_line:
         inner = re.search(r'.\^\^.', logical_line)
         if inner:
@@ -54,6 +54,16 @@ def missing_whitespace(logical_line=None, tokens=None):
                 yield inner.start() + 1, "E227 missing whitespace around bitwise or shift operator"
             if logical_line[inner.end() - 1] != ' ':
                 yield inner.end() - 1, "E227 missing whitespace around bitwise or shift operator"
+        return
+    # 1^2 or 1 ^ 2
+    # Fix: E225
+    elif "^" in logical_line:
+        inner = re.search(r'.\^.', logical_line)
+        if inner:
+            if logical_line[inner.start()] != ' ' and logical_line[inner.end() - 1] == ' ':
+                yield inner.start() + 1, "E225 missing whitespace around operator"
+            elif logical_line[inner.start()] == ' ' and logical_line[inner.end() - 1] != ' ':
+                yield inner.end() - 1, "E225 missing whitespace around operator"
         return
 
     # Otherwise, call the original function
@@ -86,7 +96,7 @@ if __name__ == "__main__":
     pycodestyle_patch()
     # test code
     source = """\
-a = 1+1
+a = 1^1
 """
     lines = source.splitlines(keepends=True)
 
