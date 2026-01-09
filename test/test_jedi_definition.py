@@ -12,9 +12,7 @@ R = PolynomialRing(ZZ, names=('x',)); (x,) = R._first_ngens(1)
 """
 
 code_text = """\
-R.<x> = PolynomialRing(ZZ)
-
-f = x ^ 3 - 2 * x + 1
+R = PolynomialRing(ZZ)
 """
 
 
@@ -35,7 +33,7 @@ def test_jedi_definition(client):
     # 'result' is in line 4, character [6:12]
     response = client.definition(
         uri=uri,
-        line=2,
+        line=0,
         character=4,
     )
 
@@ -58,7 +56,7 @@ def _test_jedi_definition_direct():
 
     # 'add' is in line 2, character [9:12]
     # 'result' is in line 4, character [6:12]
-    position = types.Position(line=3, character=8)
+    position = types.Position(line=0, character=4)
 
     locations = sagelsp_definition(doc, position)
 

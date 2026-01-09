@@ -1,10 +1,7 @@
-from encodings import undefined
 import jedi
 from jedi.api import classes
 import re
 import logging
-
-from matplotlib import lines
 
 from sagelsp import hookimpl, SageAvaliable
 
@@ -93,7 +90,12 @@ def _sage_preparse(doc: TextDocument, position: types.Position):
 
         return source_prep, new_position
     else:
-        return source_prep, position
+        new_position = types.Position(
+            line=pos_prep_line,
+            character=position.character,
+        )
+        
+        return source_prep, new_position
 
 
 @hookimpl
