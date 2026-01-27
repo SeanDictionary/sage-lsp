@@ -34,7 +34,7 @@ def test_jedi_definition(client):
     # 'result' is in line 4, character [6:12]
     response = client.definition(
         uri=uri,
-        line=0,
+        line=1,
         character=4,
     )
 

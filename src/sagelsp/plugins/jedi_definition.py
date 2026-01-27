@@ -4,6 +4,7 @@ import re
 import logging
 
 from sagelsp import hookimpl, SageAvaliable
+from .cython_utils import definition as cython_definition
 
 from pygls.uris import from_fs_path
 from pygls.workspace import TextDocument
@@ -102,11 +103,10 @@ def pyx_definition(symbol_name: str, import_path: str) -> List[types.Location]:
     """Provide definition for a symbol in .pyx file"""
     from sage.env import SAGE_LIB
 
-    log.debug(f"Finding {symbol_name} from {import_path}")
+    log.debug(f"Finding definition for symbol '{symbol_name}' from '{import_path}'")
     pyx_path = SAGE_LIB + "/" + import_path.replace(".", "/") + ".pyx"
 
-    # TODO: unfinished
-
+    return cython_definition(pyx_path, symbol_name)
     
 
 
@@ -181,30 +181,26 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
             )
         )
 
-    if locations:
-        log.info(f"jedi found {len(locations)} definitions for symbol at line {line + 1}, char {character} in {doc.uri}")
-        for loc in locations:
-            log.debug(f"- Definition at {loc.uri} line {loc.range.start.line + 1}, char {loc.range.start.character}")
-        return locations
-    elif SageAvaliable:
-        # Check if the symbol is a sage symbol from .pyx file
+    if SageAvaliable:
         match = SYMBOL.finditer(lines_orig[position.line])
         for m in match:
             if m.start() <= position.character <= m.end():
                 symbol_name = m.group()
                 break
-        else:
-            return locations
         
-        from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI
-        
+        from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI # type: ignore
+
         if doc.uri in UNDEFINED_NAMES_URI:
             undefined_names = UNDEFINED_NAMES_URI[doc.uri]
             if symbol_name in undefined_names:
-                return pyx_definition(symbol_name, undefined_names[symbol_name])
-                
-        
+                locations.extend(pyx_definition(symbol_name, undefined_names[symbol_name]))
 
+
+    if locations:
+        log.info(f"jedi found {len(locations)} definitions for symbol at line {line + 1}, char {character} in {doc.uri}")
+        for loc in locations:
+            log.debug(f"- Definition at {loc.uri} line {loc.range.start.line + 1}, char {loc.range.start.character}")
+        return locations
         
 
 
