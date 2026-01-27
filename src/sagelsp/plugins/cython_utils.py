@@ -100,6 +100,19 @@ def locate_symbol(tree: dict, node: dict, symbol_name: str, file_path: str) -> T
                 )
             )
             return location, node
+    
+    elif _type == "PyClassDefNode":
+        class_name = node.get('name')
+        if class_name == symbol_name:
+            pos = node.get('pos')
+            location = types.Location(
+                uri=from_fs_path(file_path),
+                range=types.Range(
+                    start=types.Position(line=pos[0] - 1, character=pos[1] + 6),
+                    end=types.Position(line=pos[0] - 1, character=pos[1] + 6 + len(symbol_name)),
+                )
+            )
+            return location, node
 
     elif _type == "CFuncDefNode":
         declarator = node.get('declarator', {})
@@ -115,6 +128,19 @@ def locate_symbol(tree: dict, node: dict, symbol_name: str, file_path: str) -> T
                 )
             )
             return location, node
+    
+    elif _type == "DefNode":
+        func_name = node.get('name')
+        if func_name == symbol_name:
+            pos = node.get('pos')
+            location = types.Location(
+                uri=from_fs_path(file_path),
+                range=types.Range(
+                    start=types.Position(line=pos[0] - 1, character=pos[1] + 4),
+                    end=types.Position(line=pos[0] - 1, character=pos[1] + 4 + len(symbol_name)),
+                )
+            )
+            return location, node
 
     elif _type == "SingleAssignmentNode":
         lhs = node.get('lhs', {})
@@ -126,6 +152,7 @@ def locate_symbol(tree: dict, node: dict, symbol_name: str, file_path: str) -> T
             if lhs_name == symbol_name:
                 # In theory, `x=y;y=x` will caused infinite loop, but in projects it won't
                 # Besides, as exported symbols are always defined in global scope
+                # ? if it's necessary to add a finding alias definition, anyway I add it
                 if rhs_type == "NameNode":
                     rhs_name = rhs.get('name')
                     return locate_symbol(tree, tree, rhs_name, file_path)

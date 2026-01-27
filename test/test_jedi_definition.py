@@ -3,17 +3,12 @@ from pygls.workspace import TextDocument
 
 
 code_text = """\
-def add(a, b):
-    return a + b
-result = add(2, 3)
-
-print(result)
-R = PolynomialRing(ZZ, names=('x',)); (x,) = R._first_ngens(1)
+R = PolynomialRing(ZZ)
+a = ZZ(123)
 """
 
 code_text = """\
-R = PolynomialRing(ZZ)
-a = ZZ(123)
+M = Matrix([[1, 2], [3, 4]])
 """
 
 
