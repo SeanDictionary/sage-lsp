@@ -27,6 +27,7 @@ class SymbolsCacheBase:
         self.conn = sqlite3.connect(self.cachePath, check_same_thread=False)
         self._initialize_db()
     
+    # TODO: Add definition path cache
     def _initialize_db(self):
         cursor = self.conn.cursor()
         cursor.execute("""

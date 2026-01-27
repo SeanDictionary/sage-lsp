@@ -13,6 +13,7 @@ R = PolynomialRing(ZZ, names=('x',)); (x,) = R._first_ngens(1)
 
 code_text = """\
 R = PolynomialRing(ZZ)
+a = ZZ(123)
 """
 
 
@@ -43,7 +44,7 @@ def test_jedi_definition(client):
 def _test_jedi_definition_direct():
     """Direct test of the jedi definition plugin function"""
 
-    # ! line offset relies on pyflakes_lint.UNDEFINED_NAMES_URI,
+    # ! line offset relies on plugins.pyflakes_lint.UNDEFINED_NAMES_URI,
     # ! so directly using this will have no offset in line
     from sagelsp.plugins.jedi_definition import sagelsp_definition
     from lsprotocol import types

@@ -1,5 +1,6 @@
 from typing import Any, Dict
 from lspclientbase import LSPClientBase
+import sys
 
 
 class LSPClient(LSPClientBase):
@@ -33,6 +34,13 @@ class LSPClient(LSPClientBase):
             text: Document content
             version: Document version
         """
+        DEBUG = """
+========== Code Text ==========
+{code_text}
+===============================
+
+"""
+        print(DEBUG.format(code_text=text), file=sys.stderr)
         self.send_notification("textDocument/didOpen", {
             "textDocument": {
                 "uri": uri,

@@ -93,3 +93,5 @@ def type_definition(ls: SageLanguageServer, params: types.TypeDefinitionParams):
     position: types.Position = params.position
     all_locations: List[List[types.Location]] = ls.pm.hook.sagelsp_type_definition(doc=doc, position=position)
     locations = [loc for plugin_locs in all_locations for loc in plugin_locs]
+
+    return locations

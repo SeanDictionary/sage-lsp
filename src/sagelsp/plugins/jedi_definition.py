@@ -94,14 +94,27 @@ def _sage_preparse(doc: TextDocument, position: types.Position):
             line=pos_prep_line,
             character=position.character,
         )
-        
+
         return source_prep, new_position
+
+
+def pyx_definition(symbol_name: str, import_path: str) -> List[types.Location]:
+    """Provide definition for a symbol in .pyx file"""
+    from sage.env import SAGE_LIB
+
+    log.debug(f"Finding {symbol_name} from {import_path}")
+    pyx_path = SAGE_LIB + "/" + import_path.replace(".", "/") + ".pyx"
+
+    # TODO: unfinished
+
+    
 
 
 @hookimpl
 def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[types.Location]:
     """Provide definition for a symbol."""
     # ?OPTIMIZE: If it need a delay when user is typing?
+    # TODO: Jedi can't follow file like .pyx (ps. now i'm working for it
     source = doc.source
 
     # Preparse Sage code and offset position if Sage is available
@@ -173,3 +186,31 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
         for loc in locations:
             log.debug(f"- Definition at {loc.uri} line {loc.range.start.line + 1}, char {loc.range.start.character}")
         return locations
+    elif SageAvaliable:
+        # Check if the symbol is a sage symbol from .pyx file
+        match = SYMBOL.finditer(lines_orig[position.line])
+        for m in match:
+            if m.start() <= position.character <= m.end():
+                symbol_name = m.group()
+                break
+        else:
+            return locations
+        
+        from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI
+        
+        if doc.uri in UNDEFINED_NAMES_URI:
+            undefined_names = UNDEFINED_NAMES_URI[doc.uri]
+            if symbol_name in undefined_names:
+                return pyx_definition(symbol_name, undefined_names[symbol_name])
+                
+        
+
+        
+
+
+@hookimpl
+def sagelsp_type_definition(doc: TextDocument, position: types.Position) -> List[types.Location]:
+    """Provide type definition for a symbol."""
+    # TODO: It may need type inference for Sage code, now using definition for simplicity
+    return sagelsp_definition(doc, position)
+
