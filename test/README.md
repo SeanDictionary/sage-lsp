@@ -52,3 +52,5 @@ LSPClient also extends with these methods:
 -   did_change(uri, text, version) – send didChange notification
 -   did_open(uri, language_id, text, version=1) – send didOpen notification
 -   hover(uri, line, character) – request hover info
+-   formatting(uri, options) – request formatting edits
+-   definition(uri, line, character) – request definition locations

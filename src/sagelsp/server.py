@@ -95,3 +95,18 @@ def type_definition(ls: SageLanguageServer, params: types.TypeDefinitionParams):
     locations = [loc for plugin_locs in all_locations for loc in plugin_locs]
 
     return locations
+
+@server.feature(types.TEXT_DOCUMENT_HOVER)
+def hover(ls: SageLanguageServer, params: types.HoverParams) -> types.Hover:
+    """Provide hover information for symbols."""
+    doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
+    position: types.Position = params.position
+    hover_info = ls.pm.hook.sagelsp_hover(doc=doc, position=position)
+
+    if len(hover_info) > 1:
+        log.warning(f"Multiple hover results for {doc.uri} at line {position.line + 1}, char {position.character}: {len(hover_info)} results")
+
+    if hover_info:
+        return hover_info[0]
+    else:
+        return None

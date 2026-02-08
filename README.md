@@ -18,6 +18,7 @@ Supported from native code:
 - Local symbols cache for Sage
 - Custom formatting rules for Sage
 - Custom error checking for Sage
+- Custom definition for symbols in Sage
 
 ## Change Logs
 
@@ -35,6 +36,5 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](./LICENSE)
 
 - [ ] Add type definition support
 - [ ] Add definition location for symbols_cache
-- [ ] Add definition for .pyx
-- [ ] It seems that Sage adds .pyi for Cython from 10.8, it'll be easier for definition of pyx
+- [x] Add definition for .pyx
 

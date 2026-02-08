@@ -1,6 +1,9 @@
+from math import e
 from lsprotocol import types
 from typing import List, Tuple
+
 from pygls.uris import from_fs_path
+import inspect
 import json
 import logging
 
@@ -69,7 +72,7 @@ def cython_prase(file_path: str) -> dict:
 
 def locate_symbol(tree: dict, node: dict, symbol_name: str, file_path: str) -> Tuple[types.Location, dict]:
     """Recursively locate the symbol in the AST node. Return its location and the node."""
-    
+
     # ! import modules are not handled yet
 
     if not node:
@@ -100,7 +103,7 @@ def locate_symbol(tree: dict, node: dict, symbol_name: str, file_path: str) -> T
                 )
             )
             return location, node
-    
+
     elif _type == "PyClassDefNode":
         class_name = node.get('name')
         if class_name == symbol_name:
@@ -128,7 +131,7 @@ def locate_symbol(tree: dict, node: dict, symbol_name: str, file_path: str) -> T
                 )
             )
             return location, node
-    
+
     elif _type == "DefNode":
         func_name = node.get('name')
         if func_name == symbol_name:
@@ -181,3 +184,101 @@ def definition(file_path: str, symbol_name: str) -> List[types.Location]:
     if location:
         locations.append(location)
     return locations
+
+
+def signature(file_path: str, symbol_name: str) -> str:
+    """Find the signature of a symbol from .pyx file"""
+    tree = cython_prase(file_path)
+    if not tree:
+        return ""
+
+    _, node = locate_symbol(tree, tree, symbol_name, file_path)
+    _type = node['_type']
+
+    if _type in ["PyClassDefNode", "CClassDefNode"]:
+        node_name = node.get('name') or node.get('class_name')
+        stats = node['body']['stats']
+        for stat in stats:
+            if stat['name'] == '__init__':
+                init_node = stat
+                break
+        else:
+            # If no __init__ method, use base class as signature
+            # ? seems not very accurate, but it's better than nothing
+            base = node.get('bases', {})
+            base_args = base.get('args', [])
+            args = []
+            for arg in base_args:
+                arg_name = arg.get('name')
+                if arg_name:
+                    args.append(arg_name)
+            
+            return f"{'cdef ' if _type == 'CClassDefNode' else ''}class {node_name}({', '.join(args)})"
+
+        
+        init_args = init_node['args']
+        args = []
+        for arg in init_args:
+            base_type = arg.get('base_type', {}).get('name')
+            arg_name = arg.get('declarator', {}).get('name')
+            if base_type:
+                args.append(f"{arg_name}: {base_type}")
+            else:
+                args.append(arg_name)
+        
+        return f"{'cdef ' if _type == 'CClassDefNode' else ''}class {node_name}({', '.join(args)})"
+    
+    elif _type == "DefNode":
+        func_args = node['args']
+        args = []
+        for func_arg in func_args:
+            base_type = func_arg.get('base_type').get('name')
+            arg_name = func_arg.get('declarator').get('name')
+            if base_type:
+                args.append(f"{arg_name}: {base_type}")
+            else:
+                args.append(arg_name)
+        
+        return f"def {symbol_name}({', '.join(args)})"
+
+    elif _type == "CFuncDefNode":
+        func_base_type = node.get('base_type').get('name')
+        func_args = node['declarator']['args']
+        args = []
+        for func_arg in func_args:
+            base_type = func_arg.get('base_type', {}).get('name')
+            arg_name = func_arg.get('declarator', {}).get('name')
+            if arg_name:
+                args.append(f"{arg_name}: {base_type}")
+            else:
+                args.append(base_type)
+        
+        return f"cdef {func_base_type} {symbol_name}({', '.join(args)})"
+
+def docstring(file_path: str, symbol_name: str) -> str:
+    """Find the docstring of a symbol from .pyx file"""
+    tree = cython_prase(file_path)
+    if not tree:
+        return ""
+
+    _, node = locate_symbol(tree, tree, symbol_name, file_path)
+    if node:
+        doc = node.get('doc', '')
+        return inspect.cleandoc(doc)
+
+    return ""
+
+
+def pyx_path(import_path: str) -> str:
+    """Get the .pyx file path from import path"""
+    from sage.env import SAGE_LIB
+
+    return SAGE_LIB + "/" + import_path.replace(".", "/") + ".pyx"
+
+if __name__ == "__main__":
+    path = "/home/sean/miniforge3/envs/sage/lib/python3.11/site-packages/sage/rings/integer_ring.pyx"
+    symbol_name = "ZZ"
+    pos = definition(path, symbol_name)
+    doc = docstring(path, symbol_name)
+    sig = signature(path, symbol_name)
+    print(sig)

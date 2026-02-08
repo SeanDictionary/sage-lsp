@@ -36,12 +36,12 @@ def test_jedi_definition(client):
     print("\nDefinition Response:", response)
 
 
-def _test_jedi_definition_direct():
+def _test_definition_direct():
     """Direct test of the jedi definition plugin function"""
 
     # ! line offset relies on plugins.pyflakes_lint.UNDEFINED_NAMES_URI,
     # ! so directly using this will have no offset in line
-    from sagelsp.plugins.jedi_definition import sagelsp_definition
+    from sagelsp.plugins.definition import sagelsp_definition
     from lsprotocol import types
     doc = TextDocument(
         uri="file:///test.sage",

@@ -11,6 +11,7 @@ dependencies = [
     "autopep8==2.3.2",
     "pyflakes==3.4.0",
     "jedi==0.19.2",
+    "docstring-to-markdown==0.17",
 ]
 authors = [
     { name = "SeanDictionary", email = "sean.dictionary@qq.com" }
@@ -31,7 +32,8 @@ sagelsp = "sagelsp.__main__:main"
 pycodestyle = "sagelsp.plugins.pycodestyle_lint"
 autopep8 = "sagelsp.plugins.autopep8_format"
 pyflakes = "sagelsp.plugins.pyflakes_lint"
-jedi_definition = "sagelsp.plugins.jedi_definition"
+definition = "sagelsp.plugins.definition"
+hover = "sagelsp.plugins.hover"
 
 [tool.pytest.ini_options]
 addopts = "-s -v --tb=short"

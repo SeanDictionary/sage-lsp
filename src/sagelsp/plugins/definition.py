@@ -4,7 +4,10 @@ import re
 import logging
 
 from sagelsp import hookimpl, SageAvaliable
-from .cython_utils import definition as cython_definition
+from .cython_utils import (
+    pyx_path,
+    definition as cython_definition
+)
 
 from pygls.uris import from_fs_path
 from pygls.workspace import TextDocument
@@ -99,22 +102,11 @@ def _sage_preparse(doc: TextDocument, position: types.Position):
         return source_prep, new_position
 
 
-def pyx_definition(symbol_name: str, import_path: str) -> List[types.Location]:
-    """Provide definition for a symbol in .pyx file"""
-    from sage.env import SAGE_LIB
-
-    log.debug(f"Finding definition for symbol '{symbol_name}' from '{import_path}'")
-    pyx_path = SAGE_LIB + "/" + import_path.replace(".", "/") + ".pyx"
-
-    return cython_definition(pyx_path, symbol_name)
-    
-
-
 @hookimpl
 def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[types.Location]:
     """Provide definition for a symbol."""
     # ?OPTIMIZE: If it need a delay when user is typing?
-    # TODO: Jedi can't follow file like .pyx (ps. now i'm working for it
+    # // TODO: Jedi can't follow file like .pyx (ps. now it can
     source = doc.source
 
     # Preparse Sage code and offset position if Sage is available
@@ -122,9 +114,9 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
         source_prep, new_position = _sage_preparse(doc, position)
 
         if source_prep is not None and new_position is not None:
+            lines_orig = source.splitlines()
             source = source_prep
             position = new_position
-            lines_orig = source.splitlines()
             lines_prep = source_prep.splitlines()
         else:
             return None
@@ -156,23 +148,30 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
         if name.module_path is None:
             continue
 
-        # If the finally definition is in the preparsed code which is different from the original code,
+        # If the finally definition is in the preparsed code which is different from the original code
         # we need to map the position back to the original source code.
         if SageAvaliable and doc.path == str(name.module_path) and lines_orig[name.line - 1] != lines_prep[name.line - 1]:
+            offset = len(lines_prep) - len(lines_orig)
             def_range = types.Range(
                 start=types.Position(
-                    line=name.line - 1,
-                    character=lines_orig[name.line - 1].find(name.name),
+                    line=name.line - 1 - offset,
+                    character=lines_orig[name.line - 1 - offset].find(name.name),
                 ),
                 end=types.Position(
-                    line=name.line - 1,
-                    character=lines_orig[name.line - 1].find(name.name) + len(name.name),
+                    line=name.line - 1 - offset,
+                    character=lines_orig[name.line - 1 - offset].find(name.name) + len(name.name),
                 ),
             )
         else:
             def_range = types.Range(
-                start=types.Position(line=name.line - 1, character=name.column),
-                end=types.Position(line=name.line - 1, character=name.column + len(name.name),),
+                start=types.Position(
+                    line=name.line - 1,
+                    character=name.column,
+                ),
+                end=types.Position(
+                    line=name.line - 1,
+                    character=name.column + len(name.name),
+                ),
             )
         locations.append(
             types.Location(
@@ -182,7 +181,7 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
         )
 
     if SageAvaliable:
-        match = SYMBOL.finditer(lines_orig[position.line])
+        match = SYMBOL.finditer(lines_prep[position.line])
         for m in match:
             if m.start() <= position.character <= m.end():
                 symbol_name = m.group()
@@ -193,7 +192,7 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
         if doc.uri in UNDEFINED_NAMES_URI:
             undefined_names = UNDEFINED_NAMES_URI[doc.uri]
             if symbol_name in undefined_names:
-                locations.extend(pyx_definition(symbol_name, undefined_names[symbol_name]))
+                locations.extend(cython_definition(pyx_path(undefined_names[symbol_name]), symbol_name))
 
 
     if locations:
