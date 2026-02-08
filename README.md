@@ -11,14 +11,17 @@ Supported from plugins(very thanks to those projects, they finished a lot of wor
 - [pycodestyle](https://github.com/PyCQA/pycodestyle) linter for style checking
 - [autopep8](https://github.com/hhatto/autopep8) formatter for code formatting
 - [pyflakes](https://github.com/PyCQA/pyflakes) linter for error checking
-- [jedi](https://github.com/davidhalter/jedi) definition
+- [jedi](https://github.com/davidhalter/jedi) definition and hover
+- [docstring-to-markdown](https://github.com/python-lsp/docstring-to-markdown) praser for converting docstrings to markdown for hover information
+
 
 Supported from native code:
 
 - Local symbols cache for Sage
 - Custom formatting rules for Sage
 - Custom error checking for Sage
-- Custom definition for symbols in Sage
+- Custom definition for Sage symbols
+- Custom hover information for Sage symbols
 
 ## Change Logs
 
@@ -37,4 +40,5 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](./LICENSE)
 - [ ] Add type definition support
 - [ ] Add definition location for symbols_cache
 - [x] Add definition for .pyx
+- [x] Add hover for .pyx
 

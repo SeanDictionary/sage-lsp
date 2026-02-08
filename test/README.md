@@ -4,53 +4,86 @@
 
 ### Files
 
--   [test/lsp_client.py](test/lsp_client.py) - Thin LSP client wrapper (requests/notifications, response reading)
--   [test/test_lsp_server.py](test/test_lsp_server.py) - Pytest cases: initialize / hover / shutdown
--   [test/conftest.py](test/conftest.py) - Pytest config and path setup
+- [lspclient.py](lspclient.py) - LSP client wrapper (requests/notifications, response reading)
+- [lspclientbase.py](lspclientbase.py) - Base LSP client implementation
+- [conftest.py](conftest.py) - Pytest config and fixtures
+- [examples.py](examples.py) - Example code snippets for testing
+- [color.py](color.py) - Terminal color utilities
+
+#### Test Files
+
+- [test_lsp_server.py](test_lsp_server.py) - LSP server initialization and basic functionality
+- [test_hover.py](test_hover.py) - Hover information tests
+- [test_definition.py](test_definition.py) - Go to definition tests
+- [test_autopep8.py](test_autopep8.py) - Code formatting tests (autopep8)
+- [test_pycodestyle.py](test_pycodestyle.py) - Style checking tests (pycodestyle)
+- [test_pyflakes.py](test_pyflakes.py) - Linting tests (pyflakes)
+- [test_cython_utils.py](test_cython_utils.py) - Cython utility tests
 
 ### Run tests
 
 ```bash
-pytest test/                                   # all tests with logs
-pytest test/test_lsp_server.py                 # single file
-pytest test/test_lsp_server.py::TestLSPServer::test_hover  # single case
+pytest test/                                   # all tests
+pytest test/ -v                                # verbose output
+pytest test/test_hover.py                      # single test file
+pytest test/test_hover.py::test_hover          # specific test case
+pytest test/ -k "hover"                        # run tests matching pattern
 ```
 
 ### Add a new test
 
-Add a test function or class method in [test/test_lsp_server.py](test/test_lsp_server.py) and use the `lsp_client` fixture (auto start/init/cleanup):
+Create a new test function using the `client` fixture (auto start/init/cleanup):
 
 ```python
-def test_my_feature(lsp_client):
-    lsp_client.initialize()
-    lsp_client.did_open(
-        uri="file:///test.sage",
+import pytest
+
+code_text = """\
+R = PolynomialRing(ZZ)
+"""
+
+def test_my_feature(client):
+    uri = "file:///test.sage"
+
+    # Open document
+    client.did_open(
+        uri=uri,
+        text=code_text,
         language_id="sagemath",
-        text="x = 1 + 1",
+        version=1,
     )
 
-    req_id = lsp_client.send_request("textDocument/myFeature", {
-        "textDocument": {"uri": "file:///test.sage"}
-    })
-    response = lsp_client.read_response(expected_id=req_id)
+    # Test your feature
+    response = client.hover(
+        uri=uri,
+        line=0,
+        character=4,
+    )
 
-    assert response.get("result") is not None
+    assert response is not None
+    print("\nResponse:", response)
+
+if __name__ == "__main__":
+    pytest.main([__file__])
 ```
 
 ### LSPClient quick reference
 
-LSPClient is built atop LSPClientBase which defines the necessary test methods:
+#### LSPClientBase methods (low-level)
 
--   initialize() – run initialize handshake
--   shutdown() – graceful shutdown
--   send_request(method, params=None) – send a request, returns request id
--   send_notification(method, params=None) – send a notification
--   read_response(expected_id=None) – read one response, skipping notifications
+- `initialize()` – run initialize handshake
+- `shutdown()` – graceful shutdown
+- `send_request(method, params=None)` – send a request, returns request id
+- `send_notification(method, params=None)` – send a notification
+- `read_response(expected_id=None)` – read one response, skipping notifications
+- `start()` – start the LSP server process
+- `stop()` – stop the LSP server process
 
-LSPClient also extends with these methods:
+#### LSPClient methods (high-level)
 
--   did_change(uri, text, version) – send didChange notification
--   did_open(uri, language_id, text, version=1) – send didOpen notification
--   hover(uri, line, character) – request hover info
--   formatting(uri, options) – request formatting edits
--   definition(uri, line, character) – request definition locations
+- `did_open(uri, language_id, text, version=1)` – notify server that document is opened
+- `did_change(uri, text, version)` – notify server that document is changed
+- `hover(uri, line, character)` – request hover info at position
+- `definition(uri, line, character)` – request definition locations
+- `formatting(uri)` – request document formatting edits
+
+**Note**: The `client` fixture automatically calls `initialize()` and handles `shutdown()/stop()` cleanup.
