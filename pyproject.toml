@@ -34,6 +34,7 @@ autopep8 = "sagelsp.plugins.autopep8_format"
 pyflakes = "sagelsp.plugins.pyflakes_lint"
 definition = "sagelsp.plugins.definition"
 hover = "sagelsp.plugins.hover"
+folding = "sagelsp.plugins.folding"
 
 [tool.pytest.ini_options]
 addopts = "-s -v --tb=short"

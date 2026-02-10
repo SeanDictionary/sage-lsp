@@ -12,6 +12,7 @@ Supported from plugins(very thanks to those projects, they finished a lot of wor
 - [autopep8](https://github.com/hhatto/autopep8) formatter for code formatting
 - [pyflakes](https://github.com/PyCQA/pyflakes) linter for error checking
 - [jedi](https://github.com/davidhalter/jedi) definition and hover
+- [parso](https://github.com/davidhalter/parso) for folding (dependency of jedi)
 - [docstring-to-markdown](https://github.com/python-lsp/docstring-to-markdown) praser for converting docstrings to markdown for hover information
 
 

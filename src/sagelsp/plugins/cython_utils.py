@@ -1,6 +1,7 @@
 from math import e
 from lsprotocol import types
 from typing import List, Tuple
+from functools import lru_cache
 
 from pygls.uris import from_fs_path
 import inspect
@@ -45,6 +46,7 @@ class JSONEncoder(json.JSONEncoder):
         return str(obj)
 
 
+@lru_cache()
 def cython_prase(file_path: str) -> dict:
     """Parse a Cython file into a JSON-like dict structure"""
     from types import SimpleNamespace
@@ -70,6 +72,7 @@ def cython_prase(file_path: str) -> dict:
     return json.loads(json_str)
 
 
+@lru_cache()
 def locate_symbol(tree: dict, node: dict, symbol_name: str, file_path: str) -> Tuple[types.Location, dict]:
     """Recursively locate the symbol in the AST node. Return its location and the node."""
 
@@ -171,6 +174,7 @@ def locate_symbol(tree: dict, node: dict, symbol_name: str, file_path: str) -> T
     return None, None
 
 
+@lru_cache()
 def definition(file_path: str, symbol_name: str) -> List[types.Location]:
     """Find the definition location of a symbol from .pyx file"""
     tree = cython_prase(file_path)

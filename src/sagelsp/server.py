@@ -1,5 +1,3 @@
-from colorama import Style
-from igraph import config
 from sagelsp import NAME, __version__
 from sagelsp.plugins.manager import create_plugin_manager
 from sagelsp.config import StyleConfig
@@ -110,3 +108,13 @@ def hover(ls: SageLanguageServer, params: types.HoverParams) -> types.Hover:
         return hover_info[0]
     else:
         return None
+
+
+@server.feature(types.TEXT_DOCUMENT_FOLDING_RANGE)
+def folding_range(ls: SageLanguageServer, params: types.FoldingRangeParams) -> List[types.FoldingRange]:
+    """Provide folding ranges for the document."""
+    doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
+    all_folding_ranges: List[List[types.FoldingRange]] = ls.pm.hook.sagelsp_folding_range(doc=doc)
+    folding_ranges = [fr for plugin_frs in all_folding_ranges for fr in plugin_frs]
+
+    return folding_ranges
