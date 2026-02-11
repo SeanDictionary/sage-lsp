@@ -10,6 +10,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class SageLanguageServer(LanguageServer):
     def __init__(self, *args):
         super().__init__(*args)
@@ -74,7 +75,7 @@ def format_range(ls: SageLanguageServer, params: types.DocumentRangeFormattingPa
 
 
 @server.feature(types.TEXT_DOCUMENT_DEFINITION)
-def definition(ls: SageLanguageServer, params: types.DefinitionParams):
+def definition(ls: SageLanguageServer, params: types.DefinitionParams) -> List[types.Location]:
     """Provide definition for a symbol."""
     doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
     position: types.Position = params.position
@@ -85,7 +86,7 @@ def definition(ls: SageLanguageServer, params: types.DefinitionParams):
 
 
 @server.feature(types.TEXT_DOCUMENT_TYPE_DEFINITION)
-def type_definition(ls: SageLanguageServer, params: types.TypeDefinitionParams):
+def type_definition(ls: SageLanguageServer, params: types.TypeDefinitionParams) -> List[types.Location]:
     """Provide type definition for a symbol."""
     doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
     position: types.Position = params.position
@@ -93,6 +94,18 @@ def type_definition(ls: SageLanguageServer, params: types.TypeDefinitionParams):
     locations = [loc for plugin_locs in all_locations for loc in plugin_locs]
 
     return locations
+
+
+@server.feature(types.TEXT_DOCUMENT_REFERENCES)
+def references(ls: SageLanguageServer, params: types.ReferenceParams) -> List[types.Location]:
+    """Provide reference for a symbol."""
+    doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
+    position: types.Position = params.position
+    all_locations: List[List[types.Location]] = ls.pm.hook.sagelsp_references(doc=doc, position=position)
+    locations = [loc for plugin_locs in all_locations for loc in plugin_locs]
+
+    return locations
+
 
 @server.feature(types.TEXT_DOCUMENT_HOVER)
 def hover(ls: SageLanguageServer, params: types.HoverParams) -> types.Hover:

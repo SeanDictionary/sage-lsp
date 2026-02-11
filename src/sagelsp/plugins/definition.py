@@ -114,7 +114,7 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
         source_prep, new_position = _sage_preparse(doc, position)
 
         if source_prep is not None and new_position is not None:
-            lines_orig = source.splitlines()
+            lines_orig = doc.source.splitlines()
             source = source_prep
             position = new_position
             lines_prep = source_prep.splitlines()
@@ -150,7 +150,8 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
 
         # If the finally definition is in the preparsed code which is different from the original code
         # we need to map the position back to the original source code.
-        if SageAvaliable and doc.path == str(name.module_path) and lines_orig[name.line - 1] != lines_prep[name.line - 1]:
+        if SageAvaliable and doc.path == str(name.module_path) and\
+            (len(lines_orig) < name.line or lines_orig[name.line - 1] != lines_prep[name.line - 1]):
             offset = len(lines_prep) - len(lines_orig)
             def_range = types.Range(
                 start=types.Position(

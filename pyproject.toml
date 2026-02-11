@@ -33,6 +33,7 @@ pycodestyle = "sagelsp.plugins.pycodestyle_lint"
 autopep8 = "sagelsp.plugins.autopep8_format"
 pyflakes = "sagelsp.plugins.pyflakes_lint"
 definition = "sagelsp.plugins.definition"
+references = "sagelsp.plugins.references"
 hover = "sagelsp.plugins.hover"
 folding = "sagelsp.plugins.folding"
 

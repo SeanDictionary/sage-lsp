@@ -74,7 +74,7 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
         source_prep, new_position = _sage_preparse(doc, position)
 
         if source_prep is not None and new_position is not None:
-            lines_orig = source.splitlines()
+            lines_orig = doc.source.splitlines()
             source = source_prep
             position = new_position
             lines_prep = source_prep.splitlines()

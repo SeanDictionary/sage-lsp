@@ -37,6 +37,12 @@ def sagelsp_type_definition(doc: TextDocument, position: types.Position) -> List
 
 
 @hookspec
+def sagelsp_references(doc: TextDocument, position: types.Position) -> List[types.Location]:
+    """Provide reference for a symbol."""
+    pass
+
+
+@hookspec
 def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
     pass
 
