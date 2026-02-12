@@ -1,4 +1,3 @@
-from math import e
 from lsprotocol import types
 from typing import List, Tuple
 from functools import lru_cache
@@ -72,7 +71,6 @@ def cython_prase(file_path: str) -> dict:
     return json.loads(json_str)
 
 
-@lru_cache()
 def locate_symbol(tree: dict, node: dict, symbol_name: str, file_path: str) -> Tuple[types.Location, dict]:
     """Recursively locate the symbol in the AST node. Return its location and the node."""
 
@@ -84,8 +82,8 @@ def locate_symbol(tree: dict, node: dict, symbol_name: str, file_path: str) -> T
     _type = node.get('_type')
 
     if _type == "ModuleNode":
-        bode_node = node.get('body')
-        return locate_symbol(tree, bode_node, symbol_name, file_path)
+        body_node = node.get('body')
+        return locate_symbol(tree, body_node, symbol_name, file_path)
 
     elif _type == "StatListNode":
         stats = node.get('stats', [])
@@ -190,6 +188,7 @@ def definition(file_path: str, symbol_name: str) -> List[types.Location]:
     return locations
 
 
+@lru_cache()
 def signature(file_path: str, symbol_name: str) -> str:
     """Find the signature of a symbol from .pyx file"""
     tree = cython_prase(file_path)
@@ -259,6 +258,8 @@ def signature(file_path: str, symbol_name: str) -> str:
         
         return f"cdef {func_base_type} {symbol_name}({', '.join(args)})"
 
+
+@lru_cache()
 def docstring(file_path: str, symbol_name: str) -> str:
     """Find the docstring of a symbol from .pyx file"""
     tree = cython_prase(file_path)

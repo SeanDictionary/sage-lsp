@@ -8,16 +8,17 @@ from .cython_utils import (
     pyx_path,
     definition as cython_definition
 )
+from .sage_utils import _sage_preparse, SYMBOL
 
 from pygls.uris import from_fs_path
 from pygls.workspace import TextDocument
 from typing import List
 from lsprotocol import types
 
+
 log = logging.getLogger(__name__)
 
 MAX_JEDI_GOTO_HOPS = 100
-SYMBOL = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*")
 
 
 def _resolve_definition(name: classes.Name, script: jedi.Script) -> classes.Name:
@@ -39,67 +40,52 @@ def _resolve_definition(name: classes.Name, script: jedi.Script) -> classes.Name
     return name
 
 
-def _sage_add_import_path(doc: TextDocument):
-    """Add import path for Sage symbols to help jedi definition resolution"""
-    from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI
+def _to_location(name: classes.Name, doc: TextDocument, lines_orig: List[str] = None, lines_prep: List[str] = None) -> types.Location | None:
+    if name.module_path is None or name.line is None or name.column is None:
+        return None
 
-    import_path_list = []
-    if doc.uri not in UNDEFINED_NAMES_URI:
-        # In theory this should not happen
-        log.error(f"No sage symbols found for {doc.uri} in UNDEFINED_NAME_URI")
-        return "", 0
+    if (
+        SageAvaliable
+        and lines_orig is not None
+        and lines_prep is not None
+        and doc.path == str(name.module_path)
+        and (len(lines_orig) < name.line or lines_orig[name.line - 1] != lines_prep[name.line - 1])
+    ):
+        offset = len(lines_prep) - len(lines_orig)
+        mapped_line = name.line - 1 - offset
+        if mapped_line < 0 or mapped_line >= len(lines_orig):
+            return None
 
-    undefined_names = UNDEFINED_NAMES_URI[doc.uri]
-    log.debug(f"Detected sage symbols in {doc.uri}: {undefined_names}")
-    for name, import_path in undefined_names.items():
-        import_path_list.append(f"from {import_path} import {name}\n")
-    
-    return "".join(import_path_list), len(import_path_list)
+        start_char = lines_orig[mapped_line].find(name.name)
+        if start_char < 0:
+            start_char = 0
 
-
-def _sage_preparse(doc: TextDocument, position: types.Position):
-    """Trace column offest for sage-preparse code"""
-    from sage.repl.preparse import preparse  # type: ignore
-
-    source_orig = doc.source
-    source_prep = preparse(source_orig)
-
-    # Add import paths for undefined sage symbols
-    # And offset the line number accordingly
-    import_path_text, import_num = _sage_add_import_path(doc)
-    source_prep = import_path_text + source_prep
-    pos_prep_line = position.line + import_num
-
-    lines_orig = source_orig.splitlines()
-    line_orig = lines_orig[position.line]
-
-    lines_prep = source_prep.splitlines()
-    line_prep = lines_prep[pos_prep_line]
-
-    if line_orig != line_prep:
-        match = SYMBOL.finditer(line_orig)
-        for m in match:
-            if m.start() <= position.character <= m.end():
-                symbol_name = m.group()
-                break
-        else:
-            return None, None
-
-        # FIXME: it can't handel multiple same symbols in one line
-        new_character = line_prep.find(symbol_name)
-        new_position = types.Position(
-            line=pos_prep_line,
-            character=new_character,
+        def_range = types.Range(
+            start=types.Position(
+                line=mapped_line,
+                character=start_char,
+            ),
+            end=types.Position(
+                line=mapped_line,
+                character=start_char + len(name.name),
+            ),
         )
-
-        return source_prep, new_position
     else:
-        new_position = types.Position(
-            line=pos_prep_line,
-            character=position.character,
+        def_range = types.Range(
+            start=types.Position(
+                line=name.line - 1,
+                character=name.column,
+            ),
+            end=types.Position(
+                line=name.line - 1,
+                character=name.column + len(name.name),
+            ),
         )
 
-        return source_prep, new_position
+    return types.Location(
+        uri=from_fs_path(str(name.module_path)),
+        range=def_range,
+    )
 
 
 @hookimpl
@@ -119,7 +105,7 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
             position = new_position
             lines_prep = source_prep.splitlines()
         else:
-            return None
+            return []
 
     path = doc.path
     line = position.line
@@ -135,7 +121,7 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
         )
     except Exception as e:
         log.error(f"jedi.Script.goto failed for {doc.uri} at line {line + 1}, char {character}: {e}")
-        return None
+        return []
 
     locations: List[types.Location] = []
 
@@ -145,68 +131,81 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
         if not name.is_definition():
             continue
 
-        if name.module_path is None:
-            continue
-
-        # If the finally definition is in the preparsed code which is different from the original code
-        # we need to map the position back to the original source code.
-        if SageAvaliable and doc.path == str(name.module_path) and\
-            (len(lines_orig) < name.line or lines_orig[name.line - 1] != lines_prep[name.line - 1]):
-            offset = len(lines_prep) - len(lines_orig)
-            def_range = types.Range(
-                start=types.Position(
-                    line=name.line - 1 - offset,
-                    character=lines_orig[name.line - 1 - offset].find(name.name),
-                ),
-                end=types.Position(
-                    line=name.line - 1 - offset,
-                    character=lines_orig[name.line - 1 - offset].find(name.name) + len(name.name),
-                ),
-            )
-        else:
-            def_range = types.Range(
-                start=types.Position(
-                    line=name.line - 1,
-                    character=name.column,
-                ),
-                end=types.Position(
-                    line=name.line - 1,
-                    character=name.column + len(name.name),
-                ),
-            )
-        locations.append(
-            types.Location(
-                uri=from_fs_path(str(name.module_path)),
-                range=def_range,
-            )
-        )
+        location = _to_location(name, doc, lines_orig if SageAvaliable else None, lines_prep if SageAvaliable else None)
+        if location is not None:
+            locations.append(location)
 
     if SageAvaliable:
+        symbol_name = None
         match = SYMBOL.finditer(lines_prep[position.line])
         for m in match:
             if m.start() <= position.character <= m.end():
                 symbol_name = m.group()
                 break
-        
-        from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI # type: ignore
 
-        if doc.uri in UNDEFINED_NAMES_URI:
+        from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI  # type: ignore
+
+        if doc.uri in UNDEFINED_NAMES_URI and symbol_name is not None:
             undefined_names = UNDEFINED_NAMES_URI[doc.uri]
             if symbol_name in undefined_names:
                 locations.extend(cython_definition(pyx_path(undefined_names[symbol_name]), symbol_name))
-
 
     if locations:
         log.info(f"jedi found {len(locations)} definitions for symbol at line {line + 1}, char {character} in {doc.uri}")
         for loc in locations:
             log.debug(f"- Definition at {loc.uri} line {loc.range.start.line + 1}, char {loc.range.start.character}")
-        return locations
-        
+    
+    return locations
 
 
 @hookimpl
 def sagelsp_type_definition(doc: TextDocument, position: types.Position) -> List[types.Location]:
     """Provide type definition for a symbol."""
-    # TODO: It may need type inference for Sage code, now using definition for simplicity
-    return sagelsp_definition(doc, position)
+    source = doc.source
 
+    if SageAvaliable:
+        source_prep, new_position = _sage_preparse(doc, position)
+
+        if source_prep is not None and new_position is not None:
+            lines_orig = doc.source.splitlines()
+            source = source_prep
+            position = new_position
+            lines_prep = source_prep.splitlines()
+        else:
+            return []
+
+    path = doc.path
+    line = position.line
+    character = position.character
+
+    try:
+        script = jedi.Script(code=source, path=path)
+        inferred_names = script.infer(
+            line=line + 1,
+            column=character,
+        )
+    except Exception as e:
+        log.error(f"jedi.Script.infer failed for {doc.uri} at line {line + 1}, char {character}: {e}")
+        return []
+
+    locations: List[types.Location] = []
+    seen = set()
+
+    for inferred in inferred_names:
+        resolved = _resolve_definition(inferred, script)
+        location = _to_location(resolved, doc, lines_orig if SageAvaliable else None, lines_prep if SageAvaliable else None)
+        if location is None:
+            continue
+
+        key = (location.uri, location.range.start.line, location.range.start.character)
+        if key in seen:
+            continue
+        seen.add(key)
+        locations.append(location)
+
+    if locations:
+        log.info(f"jedi found {len(locations)} type definitions for symbol at line {line + 1}, char {character} in {doc.uri}")
+        for loc in locations:
+            log.debug(f"- Type definition at {loc.uri} line {loc.range.start.line + 1}, char {loc.range.start.character}")
+
+    return locations

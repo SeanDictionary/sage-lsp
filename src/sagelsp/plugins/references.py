@@ -8,7 +8,7 @@ from lsprotocol import types
 from pygls.workspace import TextDocument
 from typing import List
 
-from .definition import _sage_preparse
+from .sage_utils import _sage_preparse
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 @hookimpl
 def sagelsp_references(doc: TextDocument, position: types.Position) -> List[types.Location]:
     """Provide reference for a symbol."""
-    # TODO: Now it only support reference in the same file
+    # TODO: It only support reference in the same file
     source = doc.source
 
     # Preparse Sage code and offset position if Sage is available

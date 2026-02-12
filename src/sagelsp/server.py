@@ -114,6 +114,7 @@ def hover(ls: SageLanguageServer, params: types.HoverParams) -> types.Hover:
     position: types.Position = params.position
     hover_info = ls.pm.hook.sagelsp_hover(doc=doc, position=position)
 
+    # In theory, there should be only one hover result, just check for safety
     if len(hover_info) > 1:
         log.warning(f"Multiple hover results for {doc.uri} at line {position.line + 1}, char {position.character}: {len(hover_info)} results")
 

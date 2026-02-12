@@ -9,14 +9,13 @@ from .cython_utils import (
     docstring as cython_docstring,
     signature as cython_signature,
 )
+from .sage_utils import _sage_preparse, SYMBOL
 
 from pygls.workspace import TextDocument
 from typing import List
 from lsprotocol import types
 from jedi.api import classes
 
-# reuse from definition.py
-from .definition import _sage_preparse, SYMBOL
 
 log = logging.getLogger(__name__)
 
@@ -94,24 +93,6 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
     except Exception as e:
         log.error(f"jedi.Script.goto failed for {doc.uri} at line {line + 1}, char {character}: {e}")
         return None
-    
-    if SageAvaliable:
-        from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI  # type: ignore
-
-        if doc.uri in UNDEFINED_NAMES_URI and symbol_name is not None:
-            undefined_names = UNDEFINED_NAMES_URI[doc.uri]
-            if symbol_name in undefined_names:
-                path = pyx_path(undefined_names[symbol_name])
-                signature = cython_signature(path, symbol_name)
-                doc = cython_docstring(path, symbol_name)
-
-                return types.Hover(
-                    contents=types.MarkupContent(
-                        kind=types.MarkupKind.Markdown,
-                        value=f"```python\n{signature}\n```\n\n---\n\n{doc_prase(doc)}" if signature else doc_prase(doc),
-                    ),
-                    range=highlight_range,
-                )
 
     if not names:
         return types.Hover(
@@ -125,12 +106,30 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
     name = names[0]
     signature = name.get_signatures()
     signature_str = "\n\n".join([f"```python\n{sig.to_string()}\n```" for sig in signature])
-    doc = name.docstring(raw=True)
+    docstring = name.docstring(raw=True)
+
+    if SageAvaliable and not (signature_str and docstring):
+        from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI  # type: ignore
+
+        if doc.uri in UNDEFINED_NAMES_URI and symbol_name is not None:
+            undefined_names = UNDEFINED_NAMES_URI[doc.uri]
+            if symbol_name in undefined_names:
+                path = pyx_path(undefined_names[symbol_name])
+                signature = cython_signature(path, symbol_name)
+                docstring = cython_docstring(path, symbol_name)
+
+                return types.Hover(
+                    contents=types.MarkupContent(
+                        kind=types.MarkupKind.Markdown,
+                        value=f"```python\n{signature}\n```\n\n---\n\n{doc_prase(docstring)}" if signature else doc_prase(docstring),
+                    ),
+                    range=highlight_range,
+                )
 
     return types.Hover(
         contents=types.MarkupContent(
             kind=types.MarkupKind.Markdown,
-            value=f"{signature_str}\n\n---\n\n{doc_prase(doc)}" if signature_str else doc_prase(doc),
+            value=f"{signature_str}\n\n---\n\n{doc_prase(docstring)}" if signature_str else doc_prase(docstring),
         ),
         range=highlight_range,
     )
