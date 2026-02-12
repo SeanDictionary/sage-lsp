@@ -4,6 +4,7 @@ import pytest
 code_text = """\
 R = PolynomialRing(QQ)
 M = Matrix(ZZ, [[1, 2], [3, 4]])
+ZZZZ = ZZ
 """
 
 
@@ -21,8 +22,8 @@ def test_hover(client):
 
     response = client.hover(
         uri=uri,
-        line=1,
-        character=5,
+        line=2,
+        character=0,
     )
 
     print("\nHover Response:", response)

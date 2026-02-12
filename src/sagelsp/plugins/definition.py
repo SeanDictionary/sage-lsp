@@ -192,8 +192,7 @@ def sagelsp_type_definition(doc: TextDocument, position: types.Position) -> List
     seen = set()
 
     for inferred in inferred_names:
-        resolved = _resolve_definition(inferred, script)
-        location = _to_location(resolved, doc, lines_orig if SageAvaliable else None, lines_prep if SageAvaliable else None)
+        location = _to_location(inferred, doc, lines_orig if SageAvaliable else None, lines_prep if SageAvaliable else None)
         if location is None:
             continue
 

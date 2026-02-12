@@ -11,7 +11,7 @@ Supported from plugins(very thanks to those projects, they finished a lot of wor
 - [pycodestyle](https://github.com/PyCQA/pycodestyle) linter for style checking
 - [autopep8](https://github.com/hhatto/autopep8) formatter for code formatting
 - [pyflakes](https://github.com/PyCQA/pyflakes) linter for error checking
-- [jedi](https://github.com/davidhalter/jedi) definition, hover, references provider
+- [jedi](https://github.com/davidhalter/jedi) definition, type definiton, hover, references provider
 - [parso](https://github.com/davidhalter/parso)(dependency of jedi) for folding
 - [docstring-to-markdown](https://github.com/python-lsp/docstring-to-markdown) praser for converting docstrings to markdown for hover information
 
@@ -23,7 +23,7 @@ Supported from native code:
 - Custom error checking for Sage
 - Custom definition for Sage symbols
 - Custom hover information for Sage symbols
-- Cython references for Sage (only in current file)
+- Check references for Sage (only in current file)
 
 ## Change Logs
 
@@ -45,6 +45,6 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](./LICENSE)
 - [x] Add hover for .pyx
 - [x] Add folding support
 - [x] Add reference support
-- [ ] Add type inference support
+- [x] Add type inference support (only for .py files)
 - [ ] Add code completion support
 

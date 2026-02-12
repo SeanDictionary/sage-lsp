@@ -39,6 +39,22 @@ def doc_prase(docstring: str) -> str:
         return parse_doc
 
 
+def sage_cython_hover(import_path: str, symbol_name: str) -> types.Hover | None:
+
+    path = pyx_path(import_path)
+    if path:
+        signature = cython_signature(path, symbol_name)
+        docstring = cython_docstring(path, symbol_name)
+
+        return types.Hover(
+            contents=types.MarkupContent(
+                kind=types.MarkupKind.Markdown,
+                value=f"```python\n{signature}\n```\n\n---\n\n{doc_prase(docstring)}" if signature else doc_prase(docstring),
+            ),
+        )
+    return None
+
+
 @hookimpl
 def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
     """Provide hover information for symbols"""
@@ -91,29 +107,23 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
             column=character
         )
     except Exception as e:
-        log.error(f"jedi.Script.goto failed for {doc.uri} at line {line + 1}, char {character}: {e}")
+        log.error(f"jedi.Script.infer failed for {doc.uri} at line {line + 1}, char {character}: {e}")
         return None
 
-    if SageAvaliable:
-        from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI  # type: ignore
 
-        if doc.uri in UNDEFINED_NAMES_URI and symbol_name is not None:
-            undefined_names = UNDEFINED_NAMES_URI[doc.uri]
-            if symbol_name in undefined_names:
-                path = pyx_path(undefined_names[symbol_name])
-                if path:
-                    signature = cython_signature(path, symbol_name)
-                    docstring = cython_docstring(path, symbol_name)
-
-                    return types.Hover(
-                        contents=types.MarkupContent(
-                            kind=types.MarkupKind.Markdown,
-                            value=f"```python\n{signature}\n```\n\n---\n\n{doc_prase(docstring)}" if signature else doc_prase(docstring),
-                        ),
-                        range=highlight_range,
-                    )
 
     if not names:
+        # Handling for Cython definitions in Sage 10.8-
+        if SageAvaliable:
+            from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI  # type: ignore
+
+            if doc.uri in UNDEFINED_NAMES_URI and symbol_name is not None:
+                undefined_names = UNDEFINED_NAMES_URI[doc.uri]
+                if symbol_name in undefined_names:
+                    hover_info = sage_cython_hover(undefined_names[symbol_name], symbol_name)
+                    if hover_info is not None:
+                        return hover_info
+
         return types.Hover(
             contents=types.MarkupContent(
                 kind=types.MarkupKind.Markdown,
@@ -122,15 +132,24 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
             range=highlight_range,
         )
 
-    name = names[0]
-    signature = name.get_signatures()
-    signature_str = "\n\n".join([f"```python\n{sig.to_string()}\n```" for sig in signature])
-    docstring = name.docstring(raw=True)
+    blocks = []
+    for name in names:
+        # Special handling for .pyi in Sage 10.8+
+        if name.module_path.suffix == '.pyi' and 'sage' in name.module_path.parts:
+            hover_info = sage_cython_hover(name.module_name, name.name)
+            if hover_info is not None:
+                return hover_info
+        
+        signature = name.get_signatures()
+        signature_str = "\n\n".join([f"```python\n{sig.to_string()}\n```" for sig in signature])
+        docstring = name.docstring(raw=True)
+        value = f"{signature_str}\n\n---\n\n{doc_prase(docstring)}" if signature_str else doc_prase(docstring)
+        blocks.append(value)
 
     return types.Hover(
         contents=types.MarkupContent(
             kind=types.MarkupKind.Markdown,
-            value=f"{signature_str}\n\n---\n\n{doc_prase(docstring)}" if signature_str else doc_prase(docstring),
+            value="\n\n---\n\n".join(blocks),
         ),
         range=highlight_range,
     )

@@ -113,3 +113,23 @@ class LSPClient(LSPClientBase):
 
         response = self.read_response(expected_id=request_id)
         return response.get("result")
+
+    def type_definition(self, uri: str, line: int, character: int):
+        """
+        Request type definition locations
+
+        Args:
+            uri: Document URI
+            line: Line number (0-based)
+            character: Character offset (0-based)
+
+        Returns:
+            Type Definition response result
+        """
+        request_id = self.send_request("textDocument/typeDefinition", {
+            "textDocument": {"uri": uri},
+            "position": {"line": line, "character": character}
+        })
+
+        response = self.read_response(expected_id=request_id)
+        return response.get("result")

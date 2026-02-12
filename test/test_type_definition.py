@@ -2,13 +2,13 @@ import pytest
 
 
 code_text = """\
-R = PolynomialRing(ZZ)
-a = QQ(123)
+R.<x> = PolynomialRing(ZZ)
+ZZZZ = ZZ
 """
 
 
-def test_jedi_definition(client):
-    """Test that jedi provides correct definition locations"""
+def test_type_definition(client):
+    """Test that jedi provides correct type definition locations"""
     uri = "file:///test.sage"
 
     # Open document
@@ -19,13 +19,13 @@ def test_jedi_definition(client):
         version=1,
     )
 
-    response = client.definition(
+    response = client.type_definition(
         uri=uri,
         line=1,
-        character=4,
+        character=0,
     )
 
-    print("\nDefinition Response:", response)
+    print("\nType Definition Response:", response)
 
 
 if __name__ == "__main__":
