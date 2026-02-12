@@ -3,7 +3,7 @@ import pytest
 
 code_text = """\
 R.<x> = PolynomialRing(ZZ)
-ZZZZ = ZZ
+a = IntegerRing_class(123)
 """
 
 

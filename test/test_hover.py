@@ -4,7 +4,7 @@ import pytest
 code_text = """\
 R = PolynomialRing(QQ)
 M = Matrix(ZZ, [[1, 2], [3, 4]])
-a = Integer
+a = ZZ
 """
 
 

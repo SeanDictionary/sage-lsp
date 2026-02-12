@@ -2,9 +2,12 @@
 
 ## Description
 
-![Release](https://img.shields.io/github/v/release/SeanDictionary/sage-lsp) ![Platform](https://img.shields.io/badge/platform-Linux%20Windows-green) ![License](https://img.shields.io/github/license/SeanDictionary/sage-lsp) ![GitHub repo size](https://img.shields.io/github/repo-size/SeanDictionary/sage-lsp) ![GitHub last commit](https://img.shields.io/github/last-commit/SeanDictionary/sage-lsp) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![SageMath](https://img.shields.io/badge/SageMath-Suggested%2010.8%2B-yellow)
+![Release](https://img.shields.io/github/v/release/SeanDictionary/sage-lsp) ![Platform](https://img.shields.io/badge/platform-Linux-green) ![License](https://img.shields.io/github/license/SeanDictionary/sage-lsp) ![GitHub repo size](https://img.shields.io/github/repo-size/SeanDictionary/sage-lsp) ![GitHub last commit](https://img.shields.io/github/last-commit/SeanDictionary/sage-lsp) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![SageMath](https://img.shields.io/badge/SageMath-Suggested%2010.8%2B-yellow)
 
 SageMath Language Server Protocol
+
+> [!TIP]
+> This project may work well with SageMath 10.8+. Other versions lack stubs for Cython files, so they may have limited functionality.
 
 ## Features
 
@@ -26,6 +29,7 @@ Supported from native code:
 - Custom definition for Sage symbols
 - Custom hover information for Sage symbols
 - Check references for Sage (only in current file)
+- Jump to definiton in Cython files (.pyx) from Stubs (.pyi) in Sage 10.8+
 
 ## Change Logs
 
@@ -47,6 +51,6 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](./LICENSE)
 - [x] Add hover for .pyx
 - [x] Add folding support
 - [x] Add reference support
-- [x] Add type inference support (only for .py files)
-- [ ] Add code completion support
+- [x] Add type inference support (only for .py/.pyi files)
+- [ ] Add code completion support (only for .py/.pyi files)
 
