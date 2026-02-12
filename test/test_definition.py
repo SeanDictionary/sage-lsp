@@ -2,8 +2,12 @@ import pytest
 
 
 code_text = """\
-R = PolynomialRing(ZZ)
-a = QQ(123)
+a = 1
+b = a
+c = b
+d = c
+print(d+2)
+print(d)
 """
 
 
@@ -21,8 +25,8 @@ def test_jedi_definition(client):
 
     response = client.definition(
         uri=uri,
-        line=1,
-        character=4,
+        line=5,
+        character=6,
     )
 
     print("\nDefinition Response:", response)

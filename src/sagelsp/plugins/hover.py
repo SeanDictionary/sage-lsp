@@ -135,8 +135,8 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
     blocks = []
     for name in names:
         # Special handling for .pyi in Sage 10.8+
-        if name.module_path.suffix == '.pyi' and 'sage' in name.module_path.parts:
-            hover_info = sage_cython_hover(name.module_name, name.name)
+        if name.module_name.startswith('sage.') and pyx_path(name.module_name):
+            hover_info = sage_cython_hover(name.module_name, name.full_name.split('.')[-1])
             if hover_info is not None:
                 return hover_info
         

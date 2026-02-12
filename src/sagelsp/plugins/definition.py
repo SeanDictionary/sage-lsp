@@ -148,7 +148,9 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
         if doc.uri in UNDEFINED_NAMES_URI and symbol_name is not None:
             undefined_names = UNDEFINED_NAMES_URI[doc.uri]
             if symbol_name in undefined_names:
-                locations.extend(cython_definition(pyx_path(undefined_names[symbol_name]), symbol_name))
+                path = pyx_path(undefined_names[symbol_name])
+                if path:
+                    locations.extend(cython_definition(path, symbol_name))
 
     if locations:
         log.info(f"jedi found {len(locations)} definitions for symbol at line {line + 1}, char {character} in {doc.uri}")
@@ -180,7 +182,7 @@ def sagelsp_type_definition(doc: TextDocument, position: types.Position) -> List
 
     try:
         script = jedi.Script(code=source, path=path)
-        inferred_names = script.infer(
+        inferred_names: List[classes.Name] = script.infer(
             line=line + 1,
             column=character,
         )
@@ -189,18 +191,15 @@ def sagelsp_type_definition(doc: TextDocument, position: types.Position) -> List
         return []
 
     locations: List[types.Location] = []
-    seen = set()
 
-    for inferred in inferred_names:
-        location = _to_location(inferred, doc, lines_orig if SageAvaliable else None, lines_prep if SageAvaliable else None)
-        if location is None:
-            continue
+    for name in inferred_names:
+        # Special handling for .pyi in Sage 10.8+
+        if name.module_name.startswith('sage.') and pyx_path(name.module_name):
+            locations.extend(cython_definition(pyx_path(name.module_name), name.full_name.split('.')[-1]))
 
-        key = (location.uri, location.range.start.line, location.range.start.character)
-        if key in seen:
-            continue
-        seen.add(key)
-        locations.append(location)
+        location = _to_location(name, doc, lines_orig if SageAvaliable else None, lines_prep if SageAvaliable else None)
+        if location is not None:
+            locations.append(location)
 
     if locations:
         log.info(f"jedi found {len(locations)} type definitions for symbol at line {line + 1}, char {character} in {doc.uri}")
