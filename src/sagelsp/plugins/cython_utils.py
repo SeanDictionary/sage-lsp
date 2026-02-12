@@ -6,6 +6,7 @@ from pygls.uris import from_fs_path
 import inspect
 import json
 import logging
+import os
 
 log = logging.getLogger(__name__)
 
@@ -197,9 +198,9 @@ def signature(file_path: str, symbol_name: str) -> str:
 
     _, node = locate_symbol(tree, tree, symbol_name, file_path)
     _type = node['_type']
+    node_name = node.get('name') or node.get('class_name')
 
     if _type in ["PyClassDefNode", "CClassDefNode"]:
-        node_name = node.get('name') or node.get('class_name')
         stats = node['body']['stats']
         for stat in stats:
             if stat['name'] == '__init__':
@@ -215,10 +216,9 @@ def signature(file_path: str, symbol_name: str) -> str:
                 arg_name = arg.get('name')
                 if arg_name:
                     args.append(arg_name)
-            
+
             return f"{'cdef ' if _type == 'CClassDefNode' else ''}class {node_name}({', '.join(args)})"
 
-        
         init_args = init_node['args']
         args = []
         for arg in init_args:
@@ -228,9 +228,9 @@ def signature(file_path: str, symbol_name: str) -> str:
                 args.append(f"{arg_name}: {base_type}")
             else:
                 args.append(arg_name)
-        
+
         return f"{'cdef ' if _type == 'CClassDefNode' else ''}class {node_name}({', '.join(args)})"
-    
+
     elif _type == "DefNode":
         func_args = node['args']
         args = []
@@ -241,8 +241,8 @@ def signature(file_path: str, symbol_name: str) -> str:
                 args.append(f"{arg_name}: {base_type}")
             else:
                 args.append(arg_name)
-        
-        return f"def {symbol_name}({', '.join(args)})"
+
+        return f"def {node_name}({', '.join(args)})"
 
     elif _type == "CFuncDefNode":
         func_base_type = node.get('base_type').get('name')
@@ -255,8 +255,8 @@ def signature(file_path: str, symbol_name: str) -> str:
                 args.append(f"{arg_name}: {base_type}")
             else:
                 args.append(base_type)
-        
-        return f"cdef {func_base_type} {symbol_name}({', '.join(args)})"
+
+        return f"cdef {func_base_type} {node_name}({', '.join(args)})"
 
 
 @lru_cache()
@@ -278,7 +278,12 @@ def pyx_path(import_path: str) -> str:
     """Get the .pyx file path from import path"""
     from sage.env import SAGE_LIB
 
-    return SAGE_LIB + "/" + import_path.replace(".", "/") + ".pyx"
+    path = SAGE_LIB + "/" + import_path.replace(".", "/")
+    if os.path.exists(path + ".pyx"):
+        return path + ".pyx"
+    else:
+        return ""
+
 
 if __name__ == "__main__":
     path = "/home/sean/miniforge3/envs/sage/lib/python3.11/site-packages/sage/rings/integer_ring.pyx"
