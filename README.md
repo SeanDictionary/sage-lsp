@@ -2,6 +2,8 @@
 
 ## Description
 
+![Release](https://img.shields.io/github/v/release/SeanDictionary/sage-lsp) ![Platform](https://img.shields.io/badge/platform-Linux%20Windows-green) ![License](https://img.shields.io/github/license/SeanDictionary/sage-lsp) ![GitHub repo size](https://img.shields.io/github/repo-size/SeanDictionary/sage-lsp) ![GitHub last commit](https://img.shields.io/github/last-commit/SeanDictionary/sage-lsp) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![SageMath](https://img.shields.io/badge/SageMath-Suggested%2010.8%2B-yellow)
+
 SageMath Language Server Protocol
 
 ## Features

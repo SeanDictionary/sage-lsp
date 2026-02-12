@@ -66,7 +66,7 @@ class SymbolsCacheBase:
             import_path = self._parse_import_str(import_str)
             symbol = Symbol(
                 name=name,
-                status=SymbolStatus.FOUND,
+                status=SymbolStatus.FOUND if import_path else SymbolStatus.NOT_FOUND,
                 import_path=import_path
             )
             self._insert(symbol)
@@ -86,7 +86,10 @@ class SymbolsCacheBase:
     def _parse_import_str(self, import_str: str) -> str:
         parts = import_str.split()
         if parts[0] == "from" and parts[2] == "import":
-            return parts[1]
+            if parts[1].startswith('sage.'):
+                return parts[1]
+            else:
+                return ""
         log.warning(f"Unexpected import string format: {import_str}")
         return ""
     
