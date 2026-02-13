@@ -33,7 +33,8 @@ SageMath Language Server Protocol
 >pip install .
 >```
 >Using `sage --version` to check if successfully installed.
->
+
+>[!WARNING]
 >If raising error about `ImportError: cysignals.signals does not export expected C function _do_raise_exception`, using following command to fix it.
 >```bash
 >pip uninstall cysignals
