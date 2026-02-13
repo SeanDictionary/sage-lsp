@@ -8,6 +8,37 @@ SageMath Language Server Protocol
 
 > [!TIP]
 > This project may work well with SageMath 10.8+. Other versions lack stubs for Cython files, so they may have limited functionality.
+>
+> However, until now (2026-2-13), SageMath 10.8 is not accessible from conda-forge (but it released on github).
+>Meanwhile, maintainer doesn't include `.pyi` files in the build system, so you can't simply install it from pip either.
+>
+>You may need to [install it from source code](https://doc.sagemath.org/html/en/installation/source.html). And edit some code.
+>```bash
+>git clone --branch 10.8 --single-branch https://github.com/sagemath/sage.git
+>cd sage
+>mamba env create --file environment-3.12-linux.yml --name sage10.8
+>mamba activate sage10.8
+>```
+>Edit `./tools/update-meson.py` like this
+>```diff
+>@@ -93,3 +93,3 @@
+>        python_files = sorted(
+>-            list(folder.glob("*.py")) + list(folder.glob('*.pxd')) + list(folder.glob('*.pyx'))
+>+            list(folder.glob("*.py")) + list(folder.glob('*.pxd')) + list(folder.glob('*.pyx')) + list(folder.glob('*.pyi'))
+>        )  # + list(folder.glob('*.pxd')) + list(folder.glob('*.h')))
+>```
+>Run `./tools/update-meson.py` to regenerate `meson.build` files. Then you can install it.
+>```bash
+>python ./tools/update-meson.py
+>pip install .
+>```
+>Using `sage --version` to check if successfully installed.
+>
+>If raising error about `ImportError: cysignals.signals does not export expected C function _do_raise_exception`, using following command to fix it.
+>```bash
+>pip uninstall cysignals
+>conda install cysignals
+>```
 
 ## Features
 
@@ -53,4 +84,5 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](./LICENSE)
 - [x] Add reference support
 - [x] Add type inference support (only for .py/.pyi files)
 - [ ] Add code completion support (only for .py/.pyi files)
+- [ ] Add type hints support
 
