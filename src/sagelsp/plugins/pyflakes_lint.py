@@ -1,6 +1,7 @@
 from pyflakes import api, reporter
 from pyflakes import messages
 import logging
+import ast
 from sagelsp import hookimpl, SageAvaliable
 from sagelsp.config import StyleConfig
 
@@ -13,7 +14,40 @@ if SageAvaliable:
     from sagelsp import SymbolsCache, SymbolStatus
 
 log = logging.getLogger(__name__)
-UNDEFINED_NAMES_URI: Dict[str, Dict[str, str]] = {}    # this dict is used to store sage symbols for different uris
+UNDEFINED_NAMES_URI: Dict[str, Dict[str, str]] = {}         # this dict is used to store sage symbols(need to import) for different uris
+NO_NEED_IMPORT_NAMES_URI: Dict[str, Dict[str, str]] = {}    # this dict is used to store sage symbols(not need to import) for different uris
+IMPORTED_NAMES_URI: Dict[str, Dict[str, str]] = {}          # this dict is used to store already imported sage symbols for different uris
+ALL_NAMES_URI: Dict[str, Dict[str, str]] = {}               # this dict is used to store all sage symbols for different uris (including both need to import and not need to import)
+
+
+def get_imported_names(source: str) -> Dict[str, str]:
+    """Get already imported names from the source code.
+    Returns a dict where key is the imported name and value is the full import path.
+    Only handles `from sage.xxx import yyy` and `import sage.xxx.yyy` style.
+    """
+    from sage.repl.preparse import preparse  # type: ignore
+    source_prep = preparse(source)
+    imported_names = {}
+    try:
+        tree = ast.parse(source_prep)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom):
+                # Handle: from sage.xxx.yyy import zzz (or as alias)
+                module = node.module
+                if module and module.startswith('sage'):
+                    for alias in node.names:
+                        if alias.name == '*' or alias.asname:
+                            continue
+                        imported_names[alias.name] = module
+            elif isinstance(node, ast.Import):
+                # pass import sage.xxx.yyy (or as alias)
+                pass
+
+    except SyntaxError:
+        # If syntax error, return empty dict
+        pass
+    return imported_names
+
 
 @hookimpl
 def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
@@ -29,8 +63,18 @@ def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnosti
     api.check(source, doc.uri, reporter=reporter)
 
     # Store sage symbols
-    UNDEFINED_NAMES = reporter.UNDEFINED_NAMES
-    UNDEFINED_NAMES_URI[doc.uri] = UNDEFINED_NAMES
+    if SageAvaliable:
+        UNDEFINED_NAMES_URI[doc.uri] = reporter.UNDEFINED_NAMES
+        NO_NEED_IMPORT_NAMES_URI[doc.uri] = reporter.NO_NEED_IMPORT_NAMES
+        IMPORTED_NAMES_URI[doc.uri] = get_imported_names(doc.source)
+    else:
+        UNDEFINED_NAMES_URI[doc.uri] = {}
+        NO_NEED_IMPORT_NAMES_URI[doc.uri] = {}
+        IMPORTED_NAMES_URI[doc.uri] = {}
+
+    # log.debug(f"\n\n{UNDEFINED_NAMES_URI}\n\n{NO_NEED_IMPORT_NAMES_URI}\n\n{IMPORTED_NAMES_URI}\n\n")
+
+    ALL_NAMES_URI[doc.uri] = {**UNDEFINED_NAMES_URI[doc.uri], **NO_NEED_IMPORT_NAMES_URI[doc.uri], **IMPORTED_NAMES_URI[doc.uri]}
 
     diagnostics = reporter.diagnostics
     log.info(f"pyflakes found {len(diagnostics)} issues in {doc.uri}")
@@ -63,6 +107,7 @@ class DiagnosticReporter(reporter.Reporter):
         self.lines = lines
         self.diagnostics = []
         self.UNDEFINED_NAMES = {}
+        self.NO_NEED_IMPORT_NAMES = {}
 
     def syntaxError(self, filename, msg, lineno, offset, text):
         # We've seen that lineno and offset can sometimes be None
@@ -114,11 +159,11 @@ class DiagnosticReporter(reporter.Reporter):
         if SageAvaliable and isinstance(message, messages.UndefinedName):
             name = message.message_args[0]
             symbol = SymbolsCache.get(name)
-            if symbol.status == SymbolStatus.FOUND:
-                # Ignore undefined name if we can find it in Sage
-                # log.debug(f"Undefined name {name} found in Sage from {symbol.import_path}")
-                self.UNDEFINED_NAMES[name] = symbol.import_path
+            if symbol.status == SymbolStatus.AUTO_IMPORT:
+                self.NO_NEED_IMPORT_NAMES[name] = symbol.import_path
                 return
+            elif symbol.status == SymbolStatus.NEED_IMPORT:
+                self.UNDEFINED_NAMES[name] = symbol.import_path
 
         diagnostic = types.Diagnostic(
             range=err_range,

@@ -1,7 +1,7 @@
 import argparse
 import sys
 import logging
-from sagelsp import SageAvaliable, CachePath
+from sagelsp import SageAvaliable, SageVersion
 from ._version import __version__
 from .server import server
 
@@ -32,7 +32,7 @@ arguments = [
         'flags': ['--sage'],
         'params': {
             'action': 'version',
-            'version': f'Sage available: {SageAvaliable}',
+            'version': f'Sage available: {SageAvaliable} {SageVersion}',
             'help': 'Check if Sage is available and exit.',
         },
     }
@@ -45,7 +45,7 @@ def main():
     level = logging._nameToLevel.get(args.log.upper(), logging.INFO)
     _config_logging(level)
     log.info(f"Starting SageLSP {__version__}. By SeanDictionary")
-    log.info(f"Sage available: {SageAvaliable}")
+    log.info(f"Sage available: {SageAvaliable} {SageVersion}")
     server.start_io()
 
 

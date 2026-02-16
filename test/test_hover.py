@@ -2,9 +2,7 @@ import pytest
 
 
 code_text = """\
-R = PolynomialRing(QQ)
-M = Matrix(ZZ, [[1, 2], [3, 4]])
-a = ZZ
+from sage.rings.integer_ring import IntegerRing_class
 """
 
 
@@ -22,16 +20,8 @@ def test_hover(client):
 
     response = client.hover(
         uri=uri,
-        line=2,
-        character=5,
-    )
-
-    print("\nHover Response:", response)
-
-    response = client.hover(
-        uri=uri,
-        line=2,
-        character=0,
+        line=0,
+        character=20,
     )
 
     print("\nHover Response:", response)

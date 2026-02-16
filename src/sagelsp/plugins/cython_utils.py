@@ -197,6 +197,9 @@ def signature(file_path: str, symbol_name: str) -> str:
         return ""
 
     _, node = locate_symbol(tree, tree, symbol_name, file_path)
+    if not node:
+        return ""
+
     _type = node['_type']
     node_name = node.get('name') or node.get('class_name')
 
@@ -272,6 +275,17 @@ def docstring(file_path: str, symbol_name: str) -> str:
         return inspect.cleandoc(doc)
 
     return ""
+
+
+@lru_cache()
+def docstring_module(file_path: str) -> str:
+    """Find the module docstring from .pyx file"""
+    tree = cython_prase(file_path)
+    if not tree:
+        return ""
+
+    doc = tree.get('doc', '')
+    return inspect.cleandoc(doc)
 
 
 def pyx_path(import_path: str) -> str:

@@ -143,10 +143,10 @@ def sagelsp_definition(doc: TextDocument, position: types.Position) -> List[type
                 symbol_name = m.group()
                 break
 
-        from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI  # type: ignore
+        from sagelsp.plugins.pyflakes_lint import ALL_NAMES_URI  # type: ignore
 
-        if doc.uri in UNDEFINED_NAMES_URI and symbol_name is not None:
-            undefined_names = UNDEFINED_NAMES_URI[doc.uri]
+        if doc.uri in ALL_NAMES_URI and symbol_name is not None:
+            undefined_names = ALL_NAMES_URI[doc.uri]
             if symbol_name in undefined_names:
                 path = pyx_path(undefined_names[symbol_name])
                 if path:

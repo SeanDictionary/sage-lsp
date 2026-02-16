@@ -10,8 +10,9 @@ log = logging.getLogger(__name__)
 
 
 class SymbolStatus(IntEnum):
-    FOUND = 1
     NOT_FOUND = 0
+    AUTO_IMPORT = 1
+    NEED_IMPORT = 2
 
 
 class Symbol:
@@ -64,9 +65,18 @@ class SymbolsCacheBase:
         try:
             import_str = import_statements(name, answer_as_str=True)
             import_path = self._parse_import_str(import_str)
+            status = SymbolStatus.NOT_FOUND
+            if import_path:
+                if name.isidentifier():  # make sure no chance to inject
+                    try:
+                        exec(f"from sage.all import {name}")
+                        status = SymbolStatus.AUTO_IMPORT
+                    except Exception:
+                        status = SymbolStatus.NEED_IMPORT
+
             symbol = Symbol(
                 name=name,
-                status=SymbolStatus.FOUND if import_path else SymbolStatus.NOT_FOUND,
+                status=status,
                 import_path=import_path
             )
             self._insert(symbol)

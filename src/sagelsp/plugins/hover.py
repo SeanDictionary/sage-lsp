@@ -8,6 +8,7 @@ from .cython_utils import (
     pyx_path,
     docstring as cython_docstring,
     signature as cython_signature,
+    docstring_module as cython_docstring_module,
 )
 from .sage_utils import _sage_preparse, SYMBOL
 
@@ -39,19 +40,29 @@ def doc_prase(docstring: str) -> str:
         return parse_doc
 
 
-def sage_cython_hover(import_path: str, symbol_name: str) -> types.Hover | None:
+def sage_cython_hover(import_path: str, symbol_name: str | None) -> types.Hover | None:
 
     path = pyx_path(import_path)
     if path:
-        signature = cython_signature(path, symbol_name)
-        docstring = cython_docstring(path, symbol_name)
+        if symbol_name:
+            signature = cython_signature(path, symbol_name)
+            docstring = cython_docstring(path, symbol_name)
 
-        return types.Hover(
-            contents=types.MarkupContent(
-                kind=types.MarkupKind.Markdown,
-                value=f"```python\n{signature}\n```\n\n---\n\n{doc_prase(docstring)}" if signature else doc_prase(docstring),
-            ),
-        )
+            return types.Hover(
+                contents=types.MarkupContent(
+                    kind=types.MarkupKind.Markdown,
+                    value=f"```python\n{signature}\n```\n\n---\n\n{doc_prase(docstring)}" if signature else doc_prase(docstring),
+                ),
+            )
+        else:
+            docstring = cython_docstring_module(path)
+
+            return types.Hover(
+                contents=types.MarkupContent(
+                    kind=types.MarkupKind.Markdown,
+                    value=doc_prase(docstring),
+                ),
+            )
     return None
 
 
@@ -110,15 +121,13 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
         log.error(f"jedi.Script.infer failed for {doc.uri} at line {line + 1}, char {character}: {e}")
         return None
 
-
-
     if not names:
         # Handling for Cython definitions in Sage 10.8-
         if SageAvaliable:
-            from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI  # type: ignore
+            from sagelsp.plugins.pyflakes_lint import ALL_NAMES_URI  # type: ignore
 
-            if doc.uri in UNDEFINED_NAMES_URI and symbol_name is not None:
-                undefined_names = UNDEFINED_NAMES_URI[doc.uri]
+            if doc.uri in ALL_NAMES_URI and symbol_name is not None:
+                undefined_names = ALL_NAMES_URI[doc.uri]
                 if symbol_name in undefined_names:
                     hover_info = sage_cython_hover(undefined_names[symbol_name], symbol_name)
                     if hover_info is not None:
@@ -136,10 +145,10 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
     for name in names:
         # Special handling for .pyi in Sage 10.8+
         if name.module_name.startswith('sage.') and pyx_path(name.module_name):
-            hover_info = sage_cython_hover(name.module_name, name.full_name.split('.')[-1])
+            hover_info = sage_cython_hover(name.module_name, None if name.type == 'module' else name.full_name.split('.')[-1])
             if hover_info is not None:
                 return hover_info
-        
+
         signature = name.get_signatures()
         signature_str = "\n\n".join([f"```python\n{sig.to_string()}\n```" for sig in signature])
         docstring = name.docstring(raw=True)

@@ -12,15 +12,15 @@ SYMBOL = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*")
 
 def _sage_add_import_path(doc: TextDocument):
     """Add import path for Sage symbols to help jedi definition resolution"""
-    from sagelsp.plugins.pyflakes_lint import UNDEFINED_NAMES_URI
+    from sagelsp.plugins.pyflakes_lint import ALL_NAMES_URI
 
     import_path_list = []
-    if doc.uri not in UNDEFINED_NAMES_URI:
+    if doc.uri not in ALL_NAMES_URI:
         # In theory this should not happen
         log.error(f"No sage symbols found for {doc.uri} in UNDEFINED_NAME_URI")
         return "", 0
 
-    undefined_names = UNDEFINED_NAMES_URI[doc.uri]
+    undefined_names = ALL_NAMES_URI[doc.uri]
     log.debug(f"Detected sage symbols in {doc.uri}: {undefined_names}")
     for name, import_path in undefined_names.items():
         import_path_list.append(f"from {import_path} import {name}\n")

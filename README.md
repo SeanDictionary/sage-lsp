@@ -55,6 +55,7 @@ Supported from plugins(very thanks to those projects, they finished a lot of wor
 
 Supported from native code:
 
+- Only support using `from sage.xxx import xxx` or `import sage.xxx` (no alias)
 - Local symbols cache for Sage
 - Custom formatting rules for Sage
 - Custom error checking for Sage
@@ -86,4 +87,5 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](./LICENSE)
 - [x] Add type inference support (only for .py/.pyi files)
 - [ ] Add code completion support (only for .py/.pyi files)
 - [ ] Add type hints support
+- [x] Add runtime sage env info
 
