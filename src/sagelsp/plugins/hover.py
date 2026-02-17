@@ -28,6 +28,8 @@ def doc_prase(docstring: str) -> str:
     Supports:
     - ...
     """
+    if not docstring:
+        return ""
     try:
         parse_doc = docstring_to_markdown.convert(docstring)
         return parse_doc

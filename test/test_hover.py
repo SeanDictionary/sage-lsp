@@ -21,7 +21,7 @@ def test_hover(client):
     response = client.hover(
         uri=uri,
         line=0,
-        character=20,
+        character=12,
     )
 
     print("\nHover Response:", response)
