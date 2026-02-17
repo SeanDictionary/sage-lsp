@@ -3,6 +3,7 @@ import pytest
 
 code_text = """\
 from sage.rings.integer_ring import IntegerRing_class
+M,A = Matrix(ZZ, [[1, 2], [3, 4]])
 """
 
 
@@ -20,8 +21,8 @@ def test_hover(client):
 
     response = client.hover(
         uri=uri,
-        line=0,
-        character=12,
+        line=1,
+        character=0,
     )
 
     print("\nHover Response:", response)

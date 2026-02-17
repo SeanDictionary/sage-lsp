@@ -119,9 +119,15 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
             line=line + 1,          # Jedi is 1-based
             column=character
         )
+        definitions = script.goto(
+            line=line + 1,
+            column=character,
+        )
     except Exception as e:
         log.error(f"jedi.Script.infer failed for {doc.uri} at line {line + 1}, char {character}: {e}")
         return None
+
+    show_docs = not any(d.type == "statement" for d in definitions)
 
     if not names:
         # Handling for Cython definitions in Sage 10.8-
@@ -135,10 +141,40 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
                     if hover_info is not None:
                         return hover_info
 
+        if not show_docs:
+            value = f"{symbol_name}: Any" if symbol_name else "Any"
+            value = f"```python\n{value}\n```"
+            return types.Hover(
+                contents=types.MarkupContent(
+                    kind=types.MarkupKind.Markdown,
+                    value=value,
+                ),
+                range=highlight_range,
+            )
+
         return types.Hover(
             contents=types.MarkupContent(
                 kind=types.MarkupKind.Markdown,
                 value="",
+            ),
+            range=highlight_range,
+        )
+
+    if not show_docs:
+        type_names = []
+        for name in names:
+            if name.name:
+                type_names.append(name.name)
+
+        type_names = list(dict.fromkeys(n for n in type_names if n))
+        value = " | ".join(type_names) if type_names else "Any"
+        value = f"{symbol_name}: " + value if symbol_name else value
+        value = f"```python\n{value}\n```"
+
+        return types.Hover(
+            contents=types.MarkupContent(
+                kind=types.MarkupKind.Markdown,
+                value=value,
             ),
             range=highlight_range,
         )
