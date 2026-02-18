@@ -2,6 +2,7 @@ import jedi
 import docstring_to_markdown
 import logging
 import re
+import ast
 
 from sagelsp import hookimpl, SageAvaliable
 from .cython_utils import (
@@ -140,9 +141,21 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
                     hover_info = sage_cython_hover(undefined_names[symbol_name], symbol_name)
                     if hover_info is not None:
                         return hover_info
-
+        
+        # Handle Type hints for variables
         if not show_docs:
-            value = f"{symbol_name}: Any" if symbol_name else "Any"
+            value = "Any"
+            try:
+                tree = ast.parse(source)
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.AnnAssign) and node.lineno == line + 1 and node.col_offset <= character < node.col_offset + len(node.target.id):
+                        annotation = node.annotation
+                        value = ast.unparse(annotation)
+                        
+            except Exception as e:
+                log.debug(f"hover failed to parse AST for type hints in {doc.uri} at line {line + 1}, char {character}: {e}")
+
+            value = f"{symbol_name}: {value}" if symbol_name else value
             value = f"```python\n{value}\n```"
             return types.Hover(
                 contents=types.MarkupContent(
@@ -168,7 +181,7 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
 
         type_names = list(dict.fromkeys(n for n in type_names if n))
         value = " | ".join(type_names) if type_names else "Any"
-        value = f"{symbol_name}: " + value if symbol_name else value
+        value = f"{symbol_name}: {value}" if symbol_name else value
         value = f"```python\n{value}\n```"
 
         return types.Hover(

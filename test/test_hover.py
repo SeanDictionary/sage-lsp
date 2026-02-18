@@ -3,7 +3,7 @@ import pytest
 
 code_text = """\
 from sage.rings.integer_ring import IntegerRing_class
-M,A = Matrix(ZZ, [[1, 2], [3, 4]])
+M: int | str | list = Matrix(ZZ, [[1, 2], [3, 4]])
 """
 
 

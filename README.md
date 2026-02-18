@@ -63,7 +63,8 @@ Supported from native code:
 - Custom hover information for Sage symbols
 - Check references for Sage (only in current file)
 - Jump to definiton in Cython files (`.pyx`) from Stubs (`.pyi`) in Sage 10.8+
-- Suppoort type inference for Sage (depend on `.pyi` in Sage 10.8+)
+- Support type inference for Sage (depend on `.pyi` in Sage 10.8+)
+- Support type hints hover info for unfollowed variables
 
 ## Change Logs
 
