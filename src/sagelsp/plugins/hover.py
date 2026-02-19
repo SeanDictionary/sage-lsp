@@ -2,7 +2,6 @@ import jedi
 import docstring_to_markdown
 import logging
 import re
-import ast
 
 from sagelsp import hookimpl, SageAvaliable
 from .cython_utils import (
@@ -12,6 +11,7 @@ from .cython_utils import (
     docstring_module as cython_docstring_module,
 )
 from .sage_utils import _sage_preparse, SYMBOL
+from .jedi_utils import _type_hints
 
 from pygls.workspace import TextDocument
 from typing import List
@@ -144,16 +144,7 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
         
         # Handle Type hints for variables
         if not show_docs:
-            value = "Any"
-            try:
-                tree = ast.parse(source)
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.AnnAssign) and node.lineno == line + 1 and node.col_offset <= character < node.col_offset + len(node.target.id):
-                        annotation = node.annotation
-                        value = ast.unparse(annotation)
-                        
-            except Exception as e:
-                log.debug(f"hover failed to parse AST for type hints in {doc.uri} at line {line + 1}, char {character}: {e}")
+            value, _ = _type_hints(source, position)
 
             value = f"{symbol_name}: {value}" if symbol_name else value
             value = f"```python\n{value}\n```"

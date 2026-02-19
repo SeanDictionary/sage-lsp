@@ -88,6 +88,6 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](./LICENSE)
 - [x] Add reference support
 - [x] Add type inference support (only for .py/.pyi files)
 - [ ] Add code completion support (only for .py/.pyi files)
-- [ ] Add type hints support
+- [x] Add type hints support (only for hover info, no type definition)
 - [x] Add runtime sage env info
 

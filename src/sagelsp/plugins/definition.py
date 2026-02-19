@@ -1,6 +1,5 @@
 import jedi
 from jedi.api import classes
-import re
 import logging
 
 from sagelsp import hookimpl, SageAvaliable
@@ -9,8 +8,8 @@ from .cython_utils import (
     definition as cython_definition
 )
 from .sage_utils import _sage_preparse, SYMBOL
+from .jedi_utils import _to_location, _type_hints
 
-from pygls.uris import from_fs_path
 from pygls.workspace import TextDocument
 from typing import List
 from lsprotocol import types
@@ -38,54 +37,6 @@ def _resolve_definition(name: classes.Name, script: jedi.Script) -> classes.Name
         name = defs[0]
 
     return name
-
-
-def _to_location(name: classes.Name, doc: TextDocument, lines_orig: List[str] = None, lines_prep: List[str] = None) -> types.Location | None:
-    if name.module_path is None or name.line is None or name.column is None:
-        return None
-
-    if (
-        SageAvaliable
-        and lines_orig is not None
-        and lines_prep is not None
-        and doc.path == str(name.module_path)
-        and (len(lines_orig) < name.line or lines_orig[name.line - 1] != lines_prep[name.line - 1])
-    ):
-        offset = len(lines_prep) - len(lines_orig)
-        mapped_line = name.line - 1 - offset
-        if mapped_line < 0 or mapped_line >= len(lines_orig):
-            return None
-
-        start_char = lines_orig[mapped_line].find(name.name)
-        if start_char < 0:
-            start_char = 0
-
-        def_range = types.Range(
-            start=types.Position(
-                line=mapped_line,
-                character=start_char,
-            ),
-            end=types.Position(
-                line=mapped_line,
-                character=start_char + len(name.name),
-            ),
-        )
-    else:
-        def_range = types.Range(
-            start=types.Position(
-                line=name.line - 1,
-                character=name.column,
-            ),
-            end=types.Position(
-                line=name.line - 1,
-                character=name.column + len(name.name),
-            ),
-        )
-
-    return types.Location(
-        uri=from_fs_path(str(name.module_path)),
-        range=def_range,
-    )
 
 
 @hookimpl
@@ -189,6 +140,10 @@ def sagelsp_type_definition(doc: TextDocument, position: types.Position) -> List
     except Exception as e:
         log.error(f"jedi.Script.infer failed for {doc.uri} at line {line + 1}, char {character}: {e}")
         return []
+
+    if not inferred_names:
+        _, locations = _type_hints(source, position)
+        return locations
 
     locations: List[types.Location] = []
 

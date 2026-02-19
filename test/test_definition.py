@@ -2,12 +2,7 @@ import pytest
 
 
 code_text = """\
-a = 1
-b = a
-c = b
-d = c
-print(d+2)
-print(d)
+M: Matrix = Matrix(ZZ, [[1, 2], [3, 4]])
 """
 
 
@@ -25,8 +20,8 @@ def test_jedi_definition(client):
 
     response = client.definition(
         uri=uri,
-        line=5,
-        character=6,
+        line=0,
+        character=15,
     )
 
     print("\nDefinition Response:", response)

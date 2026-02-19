@@ -2,8 +2,7 @@ import pytest
 
 
 code_text = """\
-R.<x> = PolynomialRing(ZZ)
-a = IntegerRing_class(123)
+M: Matrix = Matrix(ZZ, [[1, 2], [3, 4]])
 """
 
 
@@ -21,7 +20,7 @@ def test_type_definition(client):
 
     response = client.type_definition(
         uri=uri,
-        line=1,
+        line=0,
         character=0,
     )
 
