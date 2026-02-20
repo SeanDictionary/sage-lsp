@@ -12,6 +12,7 @@ dependencies = [
     "pyflakes==3.4.0",
     "jedi==0.19.2",
     "docstring-to-markdown==0.17",
+    "rope==1.14.0",
 ]
 authors = [
     { name = "SeanDictionary", email = "sean.dictionary@qq.com" }
@@ -36,6 +37,7 @@ definition = "sagelsp.plugins.definition"
 references = "sagelsp.plugins.references"
 hover = "sagelsp.plugins.hover"
 folding = "sagelsp.plugins.folding"
+actions = "sagelsp.plugins.actions"
 
 [tool.pytest.ini_options]
 addopts = "-s -v --tb=short"

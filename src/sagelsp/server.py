@@ -132,3 +132,22 @@ def folding_range(ls: SageLanguageServer, params: types.FoldingRangeParams) -> L
     folding_ranges = [fr for plugin_frs in all_folding_ranges for fr in plugin_frs]
 
     return folding_ranges
+
+
+@server.feature(
+    types.TEXT_DOCUMENT_CODE_ACTION,
+    types.CodeActionOptions(
+        code_action_kinds=[
+            types.CodeActionKind.QuickFix,
+        ]
+    )
+)
+def code_actions(params: types.CodeActionParams) -> List[types.CodeAction]:
+    """Provide code actions for a given range."""
+    diagnostics: List[types.Diagnostic] = params.context.diagnostics
+    uri: str = params.text_document.uri
+    all_code_actions: List[List[types.CodeAction]] = server.pm.hook.sagelsp_code_actions(uri=uri, diagnostics=diagnostics)
+    code_actions = [ca for plugin_cas in all_code_actions for ca in plugin_cas]
+
+    return code_actions
+

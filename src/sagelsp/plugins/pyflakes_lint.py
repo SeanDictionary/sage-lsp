@@ -168,6 +168,7 @@ class DiagnosticReporter(reporter.Reporter):
         diagnostic = types.Diagnostic(
             range=err_range,
             message=message.message % message.message_args,
+            code=message.__class__.__name__,
             severity=severity,
             source="pyflakes",
         )

@@ -45,12 +45,14 @@ SageMath Language Server Protocol
 
 Supported from plugins(very thanks to those projects, they finished a lot of work):
 
+- [pygls](https://github.com/openlawlibrary/pygls) basic LSP server framework
 - [pycodestyle](https://github.com/PyCQA/pycodestyle) linter for style checking
 - [autopep8](https://github.com/hhatto/autopep8) formatter for code formatting
 - [pyflakes](https://github.com/PyCQA/pyflakes) linter for error checking
 - [jedi](https://github.com/davidhalter/jedi) definition, type definiton, hover, references provider
 - [parso](https://github.com/davidhalter/parso)(dependency of jedi) for folding
 - [docstring-to-markdown](https://github.com/python-lsp/docstring-to-markdown) praser for converting docstrings to markdown for hover information
+- [rope](https://github.com/python-rope/rope) for ... (planned)
 
 
 Supported from native code:
@@ -65,6 +67,7 @@ Supported from native code:
 - Jump to definiton in Cython files (`.pyx`) from Stubs (`.pyi`) in Sage 10.8+
 - Support type inference for Sage (depend on `.pyi` in Sage 10.8+)
 - Support type hints hover info for unfollowed variables
+- Quick fix for undefined name in Sage
 
 ## Change Logs
 

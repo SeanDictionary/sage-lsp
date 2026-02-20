@@ -51,3 +51,8 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
 def sagelsp_folding_range(doc: TextDocument) -> List[types.FoldingRange]:
     """Provide folding ranges for the document."""
     pass
+
+@hookspec
+def sagelsp_code_actions(uri: str, diagnostics: List[types.Diagnostic]) -> List[types.CodeAction]:
+    """Provide code actions for a given range."""
+    pass
