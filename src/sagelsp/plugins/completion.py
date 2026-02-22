@@ -57,7 +57,14 @@ def sagelsp_completion(doc: TextDocument, position: types.Position) -> List[type
         signature = c.get_signatures()
         signature_str = "\n\n".join([f"```python\n{sig.to_string()}\n```" for sig in signature])
         docstring = _doc_prase(c.docstring(raw=True))
-        value = f"{signature_str}{'\n\n---\n\n' + docstring if docstring else ''}" if signature_str else docstring
+        if signature_str and docstring:
+            value = f"{signature_str}\n\n---\n\n{docstring}"
+        elif signature_str:
+            value = signature_str
+        elif docstring:
+            value = docstring
+        else:
+            continue    # Skip completion items without signature and docstring
 
         item = types.CompletionItem(
             label=c.name,

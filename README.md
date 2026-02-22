@@ -67,6 +67,7 @@ Supported from native code:
 - Support type inference for Sage (depend on `.pyi` in Sage 10.8+)
 - Support type hints hover info for unfollowed variables
 - Quick fix for undefined name in Sage
+- Completion for Sage (depend on `.pyi` in Sage 10.8+)
 
 ## Change Logs
 
@@ -89,7 +90,7 @@ This project is licensed under the GPL-3.0 License. See the [LICENSE](./LICENSE)
 - [x] Add folding support
 - [x] Add reference support
 - [x] Add type inference support (only for .py/.pyi files)
-- [ ] Add code completion support (only for .py/.pyi files)
+- [x] Add code completion support (only for .py/.pyi files)
 - [x] Add type hints support (only for hover info, no type definition)
 - [x] Add runtime sage env info
 

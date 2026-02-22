@@ -2,10 +2,7 @@ import pytest
 
 
 code_text = """\
-def my_function():
-    return 42
-
-my_f
+ZZ
 """
 
 
@@ -24,8 +21,8 @@ def test_completion(client):
     # Request completion
     result = client.completion(
         uri=uri,
-        line=3,
-        character=4,
+        line=0,
+        character=2,
     )
 
     print("\nCompletion Response:", result)
