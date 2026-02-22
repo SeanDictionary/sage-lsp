@@ -5,12 +5,13 @@ from sagelsp.symbols_cache import SymbolsCache, SymbolStatus
 from sagelsp import hookimpl
 from pygls.workspace import TextDocument
 from lsprotocol import types
-from typing import List
+from typing import List, Optional
+
 
 log = logging.getLogger(__name__)
 
 
-def _edit_UndefinedName(uri: str, diagnostic: types.Diagnostic) -> tuple[str, types.WorkspaceEdit]:
+def _edit_UndefinedName(uri: str, diagnostic: types.Diagnostic) -> Optional[tuple[str, types.WorkspaceEdit]]:
     """Generate code action for UndefinedName diagnostic, which is common for Sage users who forget to import a symbol from Sage."""
     # ! Only for Sage
     name = diagnostic.message.split("'")[1]
@@ -38,8 +39,9 @@ def sagelsp_code_actions(uri: str, diagnostics: List[types.Diagnostic]) -> List[
     actions = []
     for diagnostic in diagnostics:
         if diagnostic.code == "UndefinedName":
-            text, edit = _edit_UndefinedName(uri, diagnostic)
-            if edit:
+            result = _edit_UndefinedName(uri, diagnostic)
+            if result:
+                text, edit = result
                 actions.append(types.CodeAction(
                     title=text,
                     kind=types.CodeActionKind.QuickFix,
