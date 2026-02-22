@@ -52,7 +52,6 @@ Supported from plugins(very thanks to those projects, they finished a lot of wor
 - [jedi](https://github.com/davidhalter/jedi) definition, type definiton, hover, references provider
 - [parso](https://github.com/davidhalter/parso)(dependency of jedi) for folding
 - [docstring-to-markdown](https://github.com/python-lsp/docstring-to-markdown) praser for converting docstrings to markdown for hover information
-- [rope](https://github.com/python-rope/rope) for ... (planned)
 
 
 Supported from native code:

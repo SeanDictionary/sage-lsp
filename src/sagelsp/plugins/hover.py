@@ -1,7 +1,5 @@
 import jedi
-import docstring_to_markdown
 import logging
-import re
 
 from sagelsp import hookimpl, SageAvaliable
 from .cython_utils import (
@@ -11,7 +9,7 @@ from .cython_utils import (
     docstring_module as cython_docstring_module,
 )
 from .sage_utils import _sage_preparse, SYMBOL
-from .jedi_utils import _type_hints
+from .jedi_utils import _type_hints, _doc_prase
 
 from pygls.workspace import TextDocument
 from typing import List
@@ -20,27 +18,6 @@ from jedi.api import classes
 
 
 log = logging.getLogger(__name__)
-
-
-def doc_prase(docstring: str) -> str:
-    """
-    Using docstring-to-markdown to convert docstring to markdown format for hover display.
-
-    Supports:
-    - ...
-    """
-    if not docstring:
-        return ""
-    try:
-        parse_doc = docstring_to_markdown.convert(docstring)
-        return parse_doc
-    except docstring_to_markdown.UnknownFormatError:
-        # Fallback to basic parsing if format is unknown
-        doc = re.sub(r"([\\*_#[\]])", r"\\\1", docstring)
-        parse_doc = doc.replace("\t", "\u00a0" * 4)\
-                       .replace("\n", "\n\n")\
-                       .replace("  ", "\u00a0" * 2)
-        return parse_doc
 
 
 def sage_cython_hover(import_path: str, symbol_name: str | None) -> types.Hover | None:
@@ -54,7 +31,7 @@ def sage_cython_hover(import_path: str, symbol_name: str | None) -> types.Hover 
             return types.Hover(
                 contents=types.MarkupContent(
                     kind=types.MarkupKind.Markdown,
-                    value=f"```python\n{signature}\n```\n\n---\n\n{doc_prase(docstring)}" if signature else doc_prase(docstring),
+                    value=f"```python\n{signature}\n```\n\n---\n\n{_doc_prase(docstring)}" if signature else _doc_prase(docstring),
                 ),
             )
         else:
@@ -63,7 +40,7 @@ def sage_cython_hover(import_path: str, symbol_name: str | None) -> types.Hover 
             return types.Hover(
                 contents=types.MarkupContent(
                     kind=types.MarkupKind.Markdown,
-                    value=doc_prase(docstring),
+                    value=_doc_prase(docstring),
                 ),
             )
     return None
@@ -141,7 +118,7 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
                     hover_info = sage_cython_hover(undefined_names[symbol_name], symbol_name)
                     if hover_info is not None:
                         return hover_info
-        
+
         # Handle Type hints for variables
         if not show_docs:
             value, _ = _type_hints(source, position)
@@ -194,7 +171,7 @@ def sagelsp_hover(doc: TextDocument, position: types.Position) -> types.Hover:
         signature = name.get_signatures()
         signature_str = "\n\n".join([f"```python\n{sig.to_string()}\n```" for sig in signature])
         docstring = name.docstring(raw=True)
-        value = f"{signature_str}\n\n---\n\n{doc_prase(docstring)}" if signature_str else doc_prase(docstring)
+        value = f"{signature_str}\n\n---\n\n{_doc_prase(docstring)}" if signature_str else _doc_prase(docstring)
         blocks.append(value)
 
     return types.Hover(

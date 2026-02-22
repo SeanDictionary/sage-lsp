@@ -52,7 +52,14 @@ def sagelsp_folding_range(doc: TextDocument) -> List[types.FoldingRange]:
     """Provide folding ranges for the document."""
     pass
 
+
 @hookspec
 def sagelsp_code_actions(uri: str, diagnostics: List[types.Diagnostic]) -> List[types.CodeAction]:
     """Provide code actions for a given range."""
+    pass
+
+
+@hookspec
+def sagelsp_completion(doc: TextDocument, position: types.Position) -> List[types.CompletionItem]:
+    """Provide completion for a symbol."""
     pass

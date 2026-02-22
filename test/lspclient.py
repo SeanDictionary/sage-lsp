@@ -133,3 +133,23 @@ class LSPClient(LSPClientBase):
 
         response = self.read_response(expected_id=request_id)
         return response.get("result")
+
+    def completion(self, uri: str, line: int, character: int):
+        """
+        Request completion items
+
+        Args:
+            uri: Document URI
+            line: Line number (0-based)
+            character: Character offset (0-based)
+
+        Returns:
+            Completion response result (list of CompletionItems or CompletionList)
+        """
+        request_id = self.send_request("textDocument/completion", {
+            "textDocument": {"uri": uri},
+            "position": {"line": line, "character": character}
+        })
+
+        response = self.read_response(expected_id=request_id)
+        return response.get("result")

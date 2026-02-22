@@ -1,6 +1,8 @@
+import re
 import ast
 import jedi
 import logging
+import docstring_to_markdown
 
 from sagelsp import SageAvaliable
 from .cython_utils import (
@@ -64,6 +66,27 @@ def _to_location(name: classes.Name, doc: TextDocument, lines_orig: List[str] = 
         uri=from_fs_path(str(name.module_path)),
         range=def_range,
     )
+
+
+def _doc_prase(docstring: str) -> str:
+    """
+    Using docstring-to-markdown to convert docstring to markdown format for hover display.
+
+    Supports:
+    - ...
+    """
+    if not docstring:
+        return ""
+    try:
+        parse_doc = docstring_to_markdown.convert(docstring)
+        return parse_doc
+    except docstring_to_markdown.UnknownFormatError:
+        # Fallback to basic parsing if format is unknown
+        doc = re.sub(r"([\\*_#[\]])", r"\\\1", docstring)
+        parse_doc = doc.replace("\t", "\u00a0" * 4)\
+                       .replace("\n", "\n\n")\
+                       .replace("  ", "\u00a0" * 2)
+        return parse_doc
 
 
 def _type_hints(source: str, pos: types.Position) -> tuple[str, List[types.Location]]:

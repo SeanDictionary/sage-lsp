@@ -151,3 +151,19 @@ def code_actions(params: types.CodeActionParams) -> List[types.CodeAction]:
 
     return code_actions
 
+
+@server.feature(
+    types.TEXT_DOCUMENT_COMPLETION,
+    types.CompletionOptions(
+        trigger_characters=['.', '(', '[', ',', ' '],
+        resolve_provider=False
+    )
+)
+def completion(params: types.CompletionParams) -> List[types.CompletionItem]:
+    """Provide completion for a symbol."""
+    doc: TextDocument = server.workspace.get_text_document(params.text_document.uri)
+    position: types.Position = params.position
+    all_completions: List[List[types.CompletionItem]] = server.pm.hook.sagelsp_completion(doc=doc, position=position)
+    completions = [comp for plugin_comps in all_completions for comp in plugin_comps]
+
+    return completions
