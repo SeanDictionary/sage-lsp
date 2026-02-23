@@ -69,6 +69,44 @@ Supported from native code:
 - Quick fix for undefined name in Sage
 - Completion for Sage (depend on `.pyi` in Sage 10.8+)
 
+## Install
+
+From source code:
+```bash
+git clone https://github.com/SeanDictionary/sage-lsp && cd sage-lsp
+pip install .
+```
+
+~~From pip:~~ (not released yet)
+```bash
+pip install sage-lsp
+```
+
+## Usage
+
+### Directly run the server
+
+```bash
+sagelsp --help  // print usage information
+sagelsp --sage  // print if SageMath is available and its version
+sagelsp -l      // set log level (default: INFO)
+sagelsp --clear // clear local symbols cache and exit
+```
+
+Support global config file `~/.config/pycodestyle` or local config file in project root `.pycodestyle`, `setup.cfg`, `tox.ini` for pycodestyle and autopep8, see more details in [pycodestyle docs](https://pycodestyle.pycqa.org/en/latest/intro.html#configuration)
+
+Both pycodestyle and autopep8 config write in the same file under `[pycodestyle]` section, for example:
+
+```ini
+[pycodestyle]
+max-line-length = 100
+...
+```
+
+### Using with extension [SageMath-for-VScode](https://github.com/SeanDictionary/SageMath-for-VScode)
+
+not released yet
+
 ## Change Logs
 
 See [CHANGELOG.md](./CHANGELOG.md)
@@ -80,17 +118,3 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md)
 ## License
 
 This project is licensed under the GPL-3.0 License. See the [LICENSE](./LICENSE) file for details.
-
-## TODO
-
-- [ ] Add type definition support
-- [x] Add definition location ~~for symbols_cache~~ from global info
-- [x] Add definition for .pyx
-- [x] Add hover for .pyx
-- [x] Add folding support
-- [x] Add reference support
-- [x] Add type inference support (only for .py/.pyi files)
-- [x] Add code completion support (only for .py/.pyi files)
-- [x] Add type hints support (only for hover info, no type definition)
-- [x] Add runtime sage env info
-
