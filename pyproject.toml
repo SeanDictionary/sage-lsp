@@ -1,7 +1,7 @@
 [project]
 name = "sage-lsp"
-version = "1.0.0"
-requires-python = ">=3.9"
+version = "1.0.1"
+requires-python = ">=3.10"
 description = "SageMath Language Server Protocol"
 dependencies = [
     "pygls==2.0.0",
@@ -16,7 +16,9 @@ dependencies = [
 authors = [
     { name = "SeanDictionary", email = "sean.dictionary@qq.com" }
 ]
+readme = "README.md"
 license = { text = "GPL-3.0" }
+keywords = ["SageMath", "Sage", "LSP", "Python"]
 
 [build-system]
 requires = ["setuptools>=75.0"]
@@ -24,6 +26,8 @@ build-backend = "setuptools.build_meta"
 
 [project.urls]
 Homepage = "https://github.com/SeanDictionary/sage-lsp"
+Issues = "https://github.com/SeanDictionary/sage-lsp/issues"
+ChangeLog = "https://github.com/SeanDictionary/sage-lsp/blob/main/CHANGELOG.md"
 
 [project.scripts]
 sagelsp = "sagelsp.__main__:main"

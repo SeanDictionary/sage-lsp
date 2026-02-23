@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2026-02-23
+
+### Added
+
+- Github Actions CI workflow for publishing to PyPI and Github releases
+
+### Fixed
+
+- Fix pyproject.toml
+
 ## [1.0.0] - 2026-02-23
 
 ### Added
