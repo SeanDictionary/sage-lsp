@@ -2,6 +2,16 @@
 
 **[中文版](README.zh_CN.md) | English**
 
+### Scope
+
+These tests mainly cover:
+
+- LSP request/response flow (`hover`, `definition`, `typeDefinition`, `completion`)
+- Formatting and diagnostics integration (`autopep8`, `pycodestyle`, `pyflakes`)
+- Internal utility behavior (`cython_utils`, `symbols_cache`)
+
+Most LSP tests are smoke/integration checks and print server responses for manual inspection.
+
 ### Files
 
 - [lspclient.py](lspclient.py) - LSP client wrapper (requests/notifications, response reading)
@@ -15,19 +25,26 @@
 - [test_lsp_server.py](test_lsp_server.py) - LSP server initialization and basic functionality
 - [test_hover.py](test_hover.py) - Hover information tests
 - [test_definition.py](test_definition.py) - Go to definition tests
+- [test_type_definition.py](test_type_definition.py) - Go to type definition tests
+- [test_completion.py](test_completion.py) - Completion request tests
 - [test_autopep8.py](test_autopep8.py) - Code formatting tests (autopep8)
 - [test_pycodestyle.py](test_pycodestyle.py) - Style checking tests (pycodestyle)
 - [test_pyflakes.py](test_pyflakes.py) - Linting tests (pyflakes)
 - [test_cython_utils.py](test_cython_utils.py) - Cython utility tests
+- [test_symbols_cache.py](test_symbols_cache.py) - Symbol cache unit tests
+
+### Prerequisites
+
+- Run from repository root (`sage-lsp/`)
+- Install test dependencies (for example via project extras/dev dependencies)
+- Ensure `sagelsp` can be imported in the current Python environment
 
 ### Run tests
 
 ```bash
-pytest test/                                   # all tests
-pytest test/ -v                                # verbose output
-pytest test/test_hover.py                      # single test file
-pytest test/test_hover.py::test_hover          # specific test case
-pytest test/ -k "hover"                        # run tests matching pattern
+pytest tests/                                   # all tests
+pytest tests/test_hover.py                      # single test file
+pytest tests/test_hover.py::test_hover          # specific test case
 ```
 
 ### Add a new test
@@ -84,6 +101,14 @@ if __name__ == "__main__":
 - `did_change(uri, text, version)` – notify server that document is changed
 - `hover(uri, line, character)` – request hover info at position
 - `definition(uri, line, character)` – request definition locations
+- `type_definition(uri, line, character)` – request type definition locations
+- `completion(uri, line, character)` – request completion items
 - `formatting(uri)` – request document formatting edits
 
 **Note**: The `client` fixture automatically calls `initialize()` and handles `shutdown()/stop()` cleanup.
+
+### Notes
+
+- The `client` fixture in [conftest.py](conftest.py) starts `python -m sagelsp --log DEBUG`.
+- Some tests validate behavior through logs/printed responses rather than strict assertions.
+- Use `-s` when running tests if you want to inspect LSP responses and diagnostics in terminal output.

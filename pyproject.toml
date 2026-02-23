@@ -16,7 +16,7 @@ dependencies = [
 authors = [
     { name = "SeanDictionary", email = "sean.dictionary@qq.com" }
 ]
-license = { text = "GPL3" }
+license = { text = "GPL-3.0" }
 
 [build-system]
 requires = ["setuptools>=75.0"]

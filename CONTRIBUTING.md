@@ -21,15 +21,15 @@ pip install -e .
 pytest test/
 ```
 
-Useful commands:
+Useful commands: exp.
 
 ```bash
-pytest test/test_completion.py
-pytest test/test_hover.py -k basic
+pytest tests/test_completion.py
+pytest tests/test_hover.py -k basic
 pytest -s -v --tb=short
 ```
 
-For more LSP test details, see [test/README.md](./test/README.md).
+For more LSP test details, see [tests/README.md](./tests/README.md).
 
 ## Project structure
 
@@ -49,7 +49,7 @@ For more LSP test details, see [test/README.md](./test/README.md).
 │       ├── _version.py
 │       ├── server.py               LSP feature registration and request handlers
 │       └── symbols_cache.py        local cache for Sage symbols and import paths
-└── test                            end-to-end style LSP tests and utilities
+└── tests                           end-to-end style LSP tests and utilities
 ```
 
 ## Pull request guidelines
@@ -67,7 +67,7 @@ Before opening a PR:
 
 - Keep plugin behavior resilient: failed plugin hooks should not crash the whole server.
 - Prefer minimal, targeted changes over broad refactors.
-- When changing LSP behavior, add or update tests in `test/`.
+- When changing LSP behavior, add or update tests in `tests/`.
 
 ## Reporting issues
 
