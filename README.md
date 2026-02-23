@@ -105,6 +105,9 @@ max-line-length = 100
 
 ### Using with extension [SageMath-for-VScode](https://github.com/SeanDictionary/SageMath-for-VScode)
 
+>[!TIP]
+>Make sure you have installed the package `sage-lsp` in the same Python environment as your SageMath installation, and that the extension can import it.
+
 Install pre-release version **2.0.2-beta** from Extension Market to try the new features.
 
 The sorce code of the extension is in [SeanDictionary/SageMath-for-VScode](https://github.com/SeanDictionary/SageMath-for-VScode/tree/v2.0.2-beta). You can also download the pre-release version from [GitHub Releases](https://github.com/SeanDictionary/SageMath-for-VScode/releases/tag/v2.0.2-beta)
