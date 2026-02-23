@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.0.2] - 2026-02-24
 
 ### Added
 
 - Show Log Level in Server Log
+- Add extension support for pre-release 2.0.2-beta
 
 ## [1.0.1] - 2026-02-23
 
