@@ -90,6 +90,16 @@ class SymbolsCacheBase:
             )
         return None
 
+    def clear(self):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("DELETE FROM symbols")
+            self.conn.commit()
+            log.info("Symbols cache cleared")
+        except Exception:
+            self.conn.rollback()
+            raise
+
     def _check_and_cache(self, name: str) -> Symbol:
         try:
             import_str = import_statements(name, answer_as_str=True)

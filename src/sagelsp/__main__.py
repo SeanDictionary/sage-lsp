@@ -35,6 +35,13 @@ arguments = [
             'version': f'Sage available: {SageAvaliable} {SageVersion}',
             'help': 'Check if Sage is available and exit.',
         },
+    },
+    {
+        'flags': ['--clear'],
+        'params': {
+            'action': 'store_true',
+            'help': 'Clear local symbols cache and exit.',
+        },
     }
 ]
 
@@ -44,8 +51,15 @@ def main():
     args = parser.parse_args()
     level = logging._nameToLevel.get(args.log.upper(), logging.INFO)
     _config_logging(level)
+
     log.info(f"Starting SageLSP {__version__}. By SeanDictionary")
     log.info(f"Sage available: {SageAvaliable} {SageVersion}")
+
+    if args.clear:
+        from .symbols_cache import SymbolsCache
+        SymbolsCache.clear()
+        return
+
     server.start_io()
 
 
