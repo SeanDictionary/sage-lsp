@@ -35,12 +35,32 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
 
     # 步骤 2: 自动创建 GitHub Release
+    # 1. 提取 CHANGELOG.md 中对应版本的内容
+    - name: Extract Release Notes
+      id: extract_release_notes
+      uses: anton-prakapovich/extract-release-notes-action@v1
+      with:
+        filename: CHANGELOG.md
+        # 它会自动匹配类似 ## [1.0.1] 这样的标题
+        version: ${{ github.ref_name }}
+
+    # 2. 获取上一个 Tag 的名称（用于拼接对比链接）
+    - name: Get Previous Tag
+      id: pre_tag
+      run: |
+        prev_tag=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+        echo "prev=$prev_tag" >> $GITHUB_OUTPUT
+
+    # 3. 创建 GitHub Release
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        # 自动生成发行说明（根据两次 tag 之间的 commit 记录）
-        generate_release_notes: true
-        # 将构建好的包也作为附件上传到 GitHub Release
+        # 拼接内容：提取出的日志 + Full Changelog 链接
+        body: |
+          ${{ steps.extract_release_notes.outputs.contents }}
+          
+          ---
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.pre_tag.outputs.prev }}...${{ github.ref_name }}
         files: |
           dist/*.whl
           dist/*.tar.gz
