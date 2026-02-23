@@ -64,17 +64,24 @@ def sagelsp_completion(doc: TextDocument, position: types.Position) -> List[type
         elif docstring:
             value = docstring
         else:
-            continue    # Skip completion items without signature and docstring
+            value = None
 
-        item = types.CompletionItem(
-            label=c.name,
-            kind=_TYPE_MAP.get(c.type, types.CompletionItemKind.Text),  # Default to Text
-            documentation=types.MarkupContent(
-                kind=types.MarkupKind.Markdown,
-                value=value,
-            ),
-            insert_text=c.name,
-        )
+        if value:
+            item = types.CompletionItem(
+                label=c.name,
+                kind=_TYPE_MAP.get(c.type, types.CompletionItemKind.Text),  # Default to Text
+                documentation=types.MarkupContent(
+                    kind=types.MarkupKind.Markdown,
+                    value=value,
+                ),
+                insert_text=c.name,
+            )
+        else:
+            item = types.CompletionItem(
+                label=c.name,
+                kind=_TYPE_MAP.get(c.type, types.CompletionItemKind.Text),  # Default to Text
+                insert_text=c.name,
+            )
         completion_items.append(item)
 
     return completion_items
