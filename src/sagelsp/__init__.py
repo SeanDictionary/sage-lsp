@@ -1,8 +1,6 @@
 import pluggy
 from platformdirs import user_cache_dir
 from ._version import __version__
-from .enumeration import *
-
 
 NAME = "sagelsp"
 CachePath = user_cache_dir(appname="sagelsp", appauthor="SeanDictionary")
