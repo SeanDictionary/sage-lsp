@@ -77,7 +77,7 @@ git clone https://github.com/SeanDictionary/sage-lsp && cd sage-lsp
 pip install .
 ```
 
-~~From pip:~~ (not released yet)
+From pip:
 ```bash
 pip install sage-lsp
 ```
@@ -105,7 +105,9 @@ max-line-length = 100
 
 ### Using with extension [SageMath-for-VScode](https://github.com/SeanDictionary/SageMath-for-VScode)
 
-not released yet
+Install pre-release version **2.0.2-beta** from Extension Market to try the new features.
+
+The sorce code of the extension is in [SeanDictionary/SageMath-for-VScode](https://github.com/SeanDictionary/SageMath-for-VScode/tree/v2.0.2-beta). You can also download the pre-release version from [GitHub Releases](https://github.com/SeanDictionary/SageMath-for-VScode/releases/tag/v2.0.2-beta)
 
 ## Change Logs
 

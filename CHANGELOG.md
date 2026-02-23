@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Show Log Level in Server Log
+
 ## [1.0.1] - 2026-02-23
 
 ### Added
@@ -23,4 +29,3 @@ All notable changes to this project will be documented in this file.
 - Language intelligence via `jedi`: definition, type definition, references, hover, and completion.
 - Folding range support.
 - Quick-fix code actions for selected diagnostics.
-

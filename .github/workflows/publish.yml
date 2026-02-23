@@ -35,34 +35,45 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
 
     # 步骤 2: 自动创建 GitHub Release
-    # 1. 提取 CHANGELOG.md 中对应版本的内容
+    - name: Build Release Notes from Changelog
+      run: |
+        VERSION="${GITHUB_REF_NAME#v}"
+        awk -v ver="$VERSION" '
+          $0 ~ "^## \\["ver"\\]" {flag=1; print; next}
+          flag && $0 ~ "^## \\[" {exit}
+          flag {print}
+        ' CHANGELOG.md > release_notes.md
+
+        if [[ ! -s release_notes.md ]]; then
+          echo "No changelog entry found for $VERSION" > release_notes.md
+        fi
+
     - name: Extract Release Notes
       id: extract_release_notes
-      uses: anton-prakapovich/extract-release-notes-action@v1
-      with:
-        filename: CHANGELOG.md
-        # 它会自动匹配类似 ## [1.0.1] 这样的标题
-        version: ${{ github.ref_name }}
+      run: |
+        echo "contents<<EOF" >> "$GITHUB_OUTPUT"
+        cat release_notes.md >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
 
-    # 2. 获取上一个 Tag 的名称（用于拼接对比链接）
-    - name: Get Previous Tag
+    - name: Find Previous Tag
       id: pre_tag
       run: |
-        prev_tag=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
-        echo "prev=$prev_tag" >> $GITHUB_OUTPUT
+        PREV=$(git tag --sort=-v:refname | grep -v "^${GITHUB_REF_NAME}$" | head -n 1 || true)
+        echo "prev=$PREV" >> "$GITHUB_OUTPUT"
 
-    # 3. 创建 GitHub Release
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        # 拼接内容：提取出的日志 + Full Changelog 链接
+        # 使用 CHANGELOG 中对应版本内容
         body: |
           ${{ steps.extract_release_notes.outputs.contents }}
           
           ---
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.pre_tag.outputs.prev }}...${{ github.ref_name }}
+          ${{ steps.pre_tag.outputs.prev != '' && format('**Full Changelog**: https://github.com/{0}/compare/{1}...{2}', github.repository, steps.pre_tag.outputs.prev, github.ref_name) || 'Initial Release' }}
+        # 如果 Tag 包含 '-'，GitHub 界面会标记为 Pre-release
+        prerelease: ${{ contains(github.ref_name, '-') }}
         files: |
-          dist/*.whl
           dist/*.tar.gz
+          dist/*.whl
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

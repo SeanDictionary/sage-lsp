@@ -54,6 +54,8 @@ def main():
 
     log.info(f"Starting SageLSP {__version__}. By SeanDictionary")
     log.info(f"Sage available: {SageAvaliable} {SageVersion}")
+    log.info(f"Logging level set to {args.log.upper()}")
+    log.info("-" * 40)
 
     if args.clear:
         from .symbols_cache import SymbolsCache
