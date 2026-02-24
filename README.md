@@ -2,7 +2,7 @@
 
 ## Description
 
-![Release](https://img.shields.io/github/v/release/SeanDictionary/sage-lsp) ![Platform](https://img.shields.io/badge/platform-Linux-green) ![License](https://img.shields.io/github/license/SeanDictionary/sage-lsp) ![GitHub repo size](https://img.shields.io/github/repo-size/SeanDictionary/sage-lsp) ![GitHub last commit](https://img.shields.io/github/last-commit/SeanDictionary/sage-lsp) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![SageMath](https://img.shields.io/badge/SageMath-Suggested%2010.8%2B-yellow)
+![Release](https://img.shields.io/github/v/release/SeanDictionary/sage-lsp) ![Platform](https://img.shields.io/badge/platform-Linux-green) ![License](https://img.shields.io/github/license/SeanDictionary/sage-lsp) ![GitHub repo size](https://img.shields.io/github/repo-size/SeanDictionary/sage-lsp) ![GitHub last commit](https://img.shields.io/github/last-commit/SeanDictionary/sage-lsp) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/downloads/) [![SageMath](https://img.shields.io/badge/SageMath-Suggested%2010.8%2B-yellow)](https://www.sagemath.org/) [![PyPI Downloads](https://static.pepy.tech/personalized-badge/sage-lsp?period=total&units=INTERNATIONAL_SYSTEM&left_color=GRAY&right_color=GREEN&left_text=Downloads)](https://pepy.tech/projects/sage-lsp)
 
 SageMath Language Server Protocol
 
