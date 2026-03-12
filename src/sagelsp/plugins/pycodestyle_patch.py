@@ -10,24 +10,24 @@ OPERATOR_REGEX = re.compile(r'(?=(?:[^,\s])(\s*)(?:[-+*/|!<=>%&^]+|:=)(\s*))')
 
 
 def _retokenize(tokens):
-    """Retokenize to handle operator like '^^'.
-
-    Merges consecutive ^ tokens into a single ^^ token.
     """
-    tokens_list = list(tokens)
+    Retokenize to handle operator like '^^' & '^^='.
+
+    Merges consecutive ^ tokens into a single ^^ token & handles ^^= as well.
+    """
     i = 0
 
-    while i < len(tokens_list):
-        token_type, text, start, end, line = tokens_list[i]
+    while i < len(tokens):
+        token_type, text, start, end, line = tokens[i]
 
         # Check if this is a ^ followed immediately by another ^
         if (text == '^' and
-            i + 1 < len(tokens_list) and
-            tokens_list[i + 1][1] == '^' and
-                tokens_list[i + 1][2] == end):  # Next ^ starts where this one ends
+            i + 1 < len(tokens) and
+            tokens[i + 1][1] == '^' and
+                tokens[i + 1][2] == end):  # Next ^ starts where this one ends
 
             # Merge into ^^
-            next_token = tokens_list[i + 1]
+            next_token = tokens[i + 1]
             merged_token = (
                 tokenize.OP,           # token_type
                 '^^',                   # text
@@ -37,9 +37,27 @@ def _retokenize(tokens):
             )
             yield merged_token
             i += 2  # Skip both ^ tokens
+
+        # Handle with ^^=
+        elif (text == '^' and
+              i + 1 < len(tokens) and
+              tokens[i + 1][1] == '^=' and
+              tokens[i + 1][2] == end):  # Next ^= starts where this one ends
+
+            # Merge into ^^=
+            next_token = tokens[i + 1]
+            merged_token = (
+                tokenize.OP,            # token_type
+                '^^=',                  # text
+                start,                  # start position (from ^)
+                next_token[3],          # end position (from ^=)
+                line                    # line text
+            )
+            yield merged_token
+            i += 2  # Skip ^ and ^= tokens
         else:
             # Keep original token
-            yield tokens_list[i]
+            yield tokens[i]
             i += 1
 
 
@@ -262,7 +280,7 @@ if __name__ == "__main__":
     pycodestyle_patch()
     # test code
     source = """\
-R.<x> =    PolynomialRing(ZZ)
+a ^^= 1
 """
     lines = source.splitlines(keepends=True)
 
