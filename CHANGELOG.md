@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.3] - Unreleased
+
+### Fixed
+
+- Fix formatting for code like `a ^^= 1`
+
+### Changed
+
+- Changed `pyproject.toml`
+
 ## [1.0.2] - 2026-02-24
 
 ### Added

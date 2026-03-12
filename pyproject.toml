@@ -1,6 +1,6 @@
 [project]
 name = "sage-lsp"
-version = "1.0.2"
+version = "1.0.3"
 requires-python = ">=3.10"
 description = "SageMath Language Server Protocol"
 dependencies = [
@@ -17,7 +17,8 @@ authors = [
     { name = "SeanDictionary", email = "sean.dictionary@qq.com" }
 ]
 readme = "README.md"
-license = { text = "GPL-3.0" }
+license = "GPL-3.0"
+license-files = ["LICENSE"]
 keywords = ["SageMath", "Sage", "LSP", "Python"]
 
 [build-system]
