@@ -1,10 +1,12 @@
-from sage.misc.dev_tools import import_statements  # type: ignore
-from sagelsp import CachePath
+from sagelsp import CachePath, SageAvaliable
 from typing import Optional
 from pathlib import Path
 from enum import IntEnum
 import sqlite3
 import logging
+
+if SageAvaliable:
+    from sage.misc.dev_tools import import_statements   # type: ignore
 
 log = logging.getLogger(__name__)
 
@@ -101,36 +103,44 @@ class SymbolsCacheBase:
             raise
 
     def _check_and_cache(self, name: str) -> Symbol:
-        try:
-            import_str = import_statements(name, answer_as_str=True)
-            import_path = self._parse_import_str(import_str)
-            status = SymbolStatus.NOT_FOUND
-            if import_path:
-                if name.isidentifier():  # make sure no chance to inject
-                    try:
-                        exec(f"from sage.all import {name}")
-                        status = SymbolStatus.AUTO_IMPORT
-                    except Exception:
-                        status = SymbolStatus.NEED_IMPORT
+        if SageAvaliable:
+            try:
+                import_str = import_statements(name, answer_as_str=True)
+                import_path = self._parse_import_str(import_str)
+                status = SymbolStatus.NOT_FOUND
+                if import_path:
+                    if name.isidentifier():  # make sure no chance to inject
+                        try:
+                            exec(f"from sage.all import {name}")
+                            status = SymbolStatus.AUTO_IMPORT
+                        except Exception:
+                            status = SymbolStatus.NEED_IMPORT
 
-            symbol = Symbol(
-                name=name,
-                status=status,
-                import_path=import_path
-            )
-            self._insert(symbol)
-        except LookupError:
-            symbol = Symbol(
+                symbol = Symbol(
+                    name=name,
+                    status=status,
+                    import_path=import_path
+                )
+                self._insert(symbol)
+            except LookupError:
+                symbol = Symbol(
+                    name=name,
+                    status=SymbolStatus.NOT_FOUND,
+                    import_path=""
+                )
+                self._insert(symbol)
+            except Exception:
+                # In theory, this should not happen
+                log.warning(f"Failed to get import statement for symbol {name}", exc_info=True)
+                return None
+            return symbol
+        else:
+            log.warning("Sage is not available, cannot check symbol %s from sage", name)
+            return Symbol(
                 name=name,
                 status=SymbolStatus.NOT_FOUND,
                 import_path=""
             )
-            self._insert(symbol)
-        except Exception:
-            # In theory, this should not happen
-            log.warning(f"Failed to get import statement for symbol {name}", exc_info=True)
-            return None
-        return symbol
 
     def _parse_import_str(self, import_str: str) -> str:
         parts = import_str.split()

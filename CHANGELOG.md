@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.3] - Unreleased
+## [Unreleased] - 2026-xx-xx
+
+### Fixed
+
+- Fix using `import_statements` in `symbols_cache` when Sage is not available, which caused errors when trying to get symbol information.
+
+## [1.0.3] - 2026-03-12
 
 ### Fixed
 
