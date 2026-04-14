@@ -55,7 +55,7 @@ def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnosti
     diagnostics: List[types.Diagnostic] = []
 
     source = doc.source
-    if SageAvaliable and doc.uri.endswith(".sage"):
+    if SageAvaliable and (doc.uri.endswith(".sage") or doc.language_id == "sagemath"):
         from sage.repl.preparse import preparse  # type: ignore
         source = preparse(source)
 

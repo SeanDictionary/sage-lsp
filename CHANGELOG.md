@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Fix using `import_statements` in `symbols_cache` when Sage is not available, which caused errors when trying to get symbol information.
 
+### Added
+
+- Add `language_id` check to `pyflakes_lint` plugin to avoid errors when trying to lint non-Sage files without Sage available.
+
 ## [1.0.3] - 2026-03-12
 
 ### Fixed
