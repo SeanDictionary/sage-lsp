@@ -18,7 +18,15 @@ except ImportError:
     SageAvaliable = False
     SageVersion = ""
 
+LANGUAGE_ID = "sagemath"
+
 __all__ = [
     "__version__",
+    "hookspec",
+    "hookimpl",
+    "SageAvaliable",
+    "SageVersion",
+    "LANGUAGE_ID",
+    "CachePath",
 ]
 

@@ -2,7 +2,7 @@ from pyflakes import api, reporter
 from pyflakes import messages
 import logging
 import ast
-from sagelsp import hookimpl, SageAvaliable
+from sagelsp import hookimpl, SageAvaliable, LANGUAGE_ID
 from sagelsp.config import StyleConfig
 
 from pygls.workspace import TextDocument
@@ -55,7 +55,7 @@ def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnosti
     diagnostics: List[types.Diagnostic] = []
 
     source = doc.source
-    if SageAvaliable and (doc.uri.endswith(".sage") or doc.language_id == "sagemath"):
+    if SageAvaliable and (doc.uri.endswith(".sage") or doc.language_id == LANGUAGE_ID):
         from sage.repl.preparse import preparse  # type: ignore
         source = preparse(source)
 
