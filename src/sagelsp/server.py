@@ -1,4 +1,4 @@
-from sagelsp import NAME, __version__
+from sagelsp import NAME, __version__, LANGUAGE_ID
 from sagelsp.plugins.manager import create_plugin_manager
 from sagelsp.config import StyleConfig
 
@@ -12,8 +12,8 @@ log = logging.getLogger(__name__)
 
 
 class SageLanguageServer(LanguageServer):
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.pm = create_plugin_manager()
         self.log = log
         self.StyleConfig = None
@@ -23,7 +23,21 @@ class SageLanguageServer(LanguageServer):
         self.StyleConfig = StyleConfig(self.workspace)
 
 
-server = SageLanguageServer(NAME, __version__)
+server = SageLanguageServer(
+    name=NAME,
+    version=__version__,
+    notebook_document_sync=types.NotebookDocumentSyncOptions(
+        notebook_selector=[
+            types.NotebookDocumentFilterWithCells(
+                cells=[
+                    types.NotebookCellLanguage(
+                        language=LANGUAGE_ID
+                    ),
+                ],
+            ),
+        ],
+    ),
+)
 
 
 @server.feature(types.INITIALIZE)

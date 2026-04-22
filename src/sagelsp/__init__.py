@@ -11,7 +11,6 @@ hookimpl = pluggy.HookimplMarker(NAME)
 try:
     import sage # type: ignore
     from sage.env import SAGE_VERSION, SAGE_DATE    # type: ignore
-    from .symbols_cache import SymbolsCache, SymbolStatus
     SageAvaliable = True
     SageVersion = f"{SAGE_VERSION} ({SAGE_DATE})"
 except ImportError:

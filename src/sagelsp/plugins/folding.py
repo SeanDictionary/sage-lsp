@@ -3,7 +3,7 @@ import re
 import parso
 import parso.python.tree as tree_nodes
 
-from sagelsp import hookimpl, SageAvaliable
+from sagelsp import hookimpl, SageAvaliable, LANGUAGE_ID
 
 from pygls.workspace import TextDocument
 from typing import List
@@ -18,7 +18,7 @@ IDENTATION_REGEX = re.compile(r"(\s+).+")
 @hookimpl
 def sagelsp_folding_range(doc: TextDocument) -> List[types.FoldingRange]:
     program = doc.source + "\n"
-    if SageAvaliable and doc.uri.endswith(".sage"):
+    if SageAvaliable and (doc.uri.endswith(".sage") or doc.language_id == LANGUAGE_ID):
         from sage.repl.preparse import preparse  # type: ignore
         program = preparse(program)
     lines = program.splitlines()

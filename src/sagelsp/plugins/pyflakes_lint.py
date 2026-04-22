@@ -11,7 +11,7 @@ from lsprotocol import types
 from lsprotocol.types import DiagnosticSeverity
 
 if SageAvaliable:
-    from sagelsp import SymbolsCache, SymbolStatus
+    from sagelsp.symbols_cache import SymbolsCache, SymbolStatus
 
 log = logging.getLogger(__name__)
 UNDEFINED_NAMES_URI: Dict[str, Dict[str, str]] = {}         # this dict is used to store sage symbols(need to import) for different uris
