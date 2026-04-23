@@ -6,8 +6,19 @@ from pygls.workspace import TextDocument
 
 
 @hookspec
-def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> None:
-    """Lint the document using pycodestyle."""
+def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
+    """Lint the document using pycodestyle. It includes both style and semantic linting."""
+    pass
+
+@hookspec
+def sagelsp_semantic_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
+    """Lint diagnostics that are safe on virtual notebook documents. Specially for Jupyter notebook"""
+    pass
+
+
+@hookspec
+def sagelsp_style_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
+    """Lint diagnostics that should run on original document or cell text. Specially for Jupyter notebook"""
     pass
 
 

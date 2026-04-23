@@ -27,7 +27,7 @@ def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnosti
 
     # Load configuration from global and project sources
     config = config.get_pycodestyle_config()
-    
+
     style = pycodestyle.StyleGuide(**config)
 
     checker = pycodestyle.Checker(
@@ -45,10 +45,17 @@ def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnosti
     return diagnostics
 
 
+@hookimpl
+def sagelsp_style_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
+    return sagelsp_lint(doc, config)
+
+
 """
 Folowing codes are adapted from python-lsp-server
 https://github.com/python-lsp/python-lsp-server/blob/develop/pylsp/plugins/pycodestyle_lint.py
 """
+
+
 class PyCodeStyleReport(pycodestyle.BaseReport):
     def __init__(self, options) -> None:
         self.diagnostics = []
@@ -88,6 +95,7 @@ class PyCodeStyleReport(pycodestyle.BaseReport):
         if code.startswith("W6"):
             diagnostic.tags = [DiagnosticTag.Deprecated]
         self.diagnostics.append(diagnostic)
+
 
 def _get_severity(code):
     # Are style errors ever really errors?

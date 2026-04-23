@@ -84,6 +84,11 @@ def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnosti
     return diagnostics
 
 
+@hookimpl
+def sagelsp_semantic_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
+    return sagelsp_lint(doc, config)
+
+
 """
 Folowing codes are adapted from python-lsp-server
 https://github.com/python-lsp/python-lsp-server/blob/develop/pylsp/plugins/pyflakes_lint.py

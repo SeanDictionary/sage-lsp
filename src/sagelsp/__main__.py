@@ -52,7 +52,7 @@ def main():
     level = logging._nameToLevel.get(args.log.upper(), logging.INFO)
     _config_logging(level)
 
-    log.info(f"Starting SageLSP {__version__}. By SeanDictionary")
+    log.info(f"Starting SageLSP {__version__} By SeanDictionary")
     log.info(f"Sage available: {SageAvaliable} {SageVersion}")
     log.info(f"Logging level set to {args.log.upper()}")
     log.info("-" * 40)
