@@ -67,27 +67,28 @@ def notebook_open_change(ls: SageLanguageServer, params: Union[types.DidOpenNote
     # Handle semantic linting for notebook in virtual document
     all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_semantic_lint(doc=doc, config=ls.StyleConfig)
     virtual_diagnostics = [diag for plugin_diags in all_diagnostics for diag in plugin_diags]
-    diagnostics_by_cell = notebook.map_diagnostics(virtual_diagnostics)
-
-    for cell_uri, diagnostics in diagnostics_by_cell.items():
-        cell_doc = ls.workspace.get_text_document(cell_uri)
-        params = types.PublishDiagnosticsParams(
-            uri=cell_uri,
-            diagnostics=diagnostics,
-            version=cell_doc.version,
-        )
-        ls.text_document_publish_diagnostics(params)
+    diagnostics_semantic = notebook.map_diagnostics(virtual_diagnostics)
 
     # Handle style linting for notebook in original cell documents
+    diagnostics_style: dict[str, List[types.Diagnostic]] = {}
     for cell in notebook.cells:
         if cell.kind != types.NotebookCellKind.Code:
             continue
         cell_doc = ls.workspace.get_text_document(cell.document)
+        if cell_doc.language_id != LANGUAGE_ID:
+            continue
         all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_style_lint(doc=cell_doc, config=ls.StyleConfig)
         diagnostics = [diag for plugin_diags in all_diagnostics for diag in plugin_diags]
 
+        diagnostics_style[cell.document] = diagnostics
+
+    # publish diagnostics with semantic and style diagnostics
+    diagnostics_all = notebook.merge_diagnostics(diagnostics_semantic, diagnostics_style)
+
+    for cell_uri, diagnostics in diagnostics_all.items():
+        cell_doc = ls.workspace.get_text_document(cell_uri)
         params = types.PublishDiagnosticsParams(
-            uri=cell.document,
+            uri=cell_uri,
             diagnostics=diagnostics,
             version=cell_doc.version,
         )
@@ -98,7 +99,9 @@ def notebook_open_change(ls: SageLanguageServer, params: Union[types.DidOpenNote
 @server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
 def open_change(ls: SageLanguageServer, params: Union[types.DidOpenTextDocumentParams, types.DidChangeTextDocumentParams]):
     """Handle document open and change events to trigger linting."""
-    doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
+    if ls.workspace.get_notebook_document(cell_uri=params.text_document.uri) is not None:
+        return
+    doc: TextDocument = ls.workspace.get_text_document(doc_uri=params.text_document.uri)
     all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_lint(doc=doc, config=ls.StyleConfig)
     diagnostics = [diag for plugin_diags in all_diagnostics for diag in plugin_diags]
 

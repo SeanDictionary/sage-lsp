@@ -124,3 +124,13 @@ class JupyterNotebook:
             diagnostics_by_cell[cell_uri].append(cell_diagnostic)
 
         return diagnostics_by_cell
+
+    def merge_diagnostics(self, *diagnostics_dicts: Dict[str, List[types.Diagnostic]]) -> Dict[str, List[types.Diagnostic]]:
+        """Merge diagnostics from multiple sources (e.g., semantic and style) for each cell."""
+        merged: Dict[str, List[types.Diagnostic]] = {}
+        for diagnostics_dict in diagnostics_dicts:
+            for cell_uri, diags in diagnostics_dict.items():
+                if cell_uri not in merged:
+                    merged[cell_uri] = []
+                merged[cell_uri].extend(diags)
+        return merged
