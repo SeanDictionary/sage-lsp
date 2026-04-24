@@ -1,6 +1,7 @@
 from sagelsp import NAME, __version__, LANGUAGE_ID
 from sagelsp.plugins.manager import create_plugin_manager
 from sagelsp.config import StyleConfig
+from sagelsp.notebook import JupyterNotebook
 
 from pygls.lsp.server import LanguageServer
 from pygls.workspace import TextDocument
@@ -26,6 +27,7 @@ class SageLanguageServer(LanguageServer):
 server = SageLanguageServer(
     name=NAME,
     version=__version__,
+    text_document_sync_kind=types.TextDocumentSyncKind.Incremental,
     notebook_document_sync=types.NotebookDocumentSyncOptions(
         notebook_selector=[
             types.NotebookDocumentFilterWithCells(
@@ -48,6 +50,48 @@ def initialize(ls: SageLanguageServer, params):
 @server.feature(types.WORKSPACE_DID_CHANGE_CONFIGURATION)
 def did_change_configuration(ls: SageLanguageServer, params):
     ls.refresh_styleconfig()
+
+
+@server.feature(types.NOTEBOOK_DOCUMENT_DID_OPEN)
+@server.feature(types.NOTEBOOK_DOCUMENT_DID_CHANGE)
+def notebook_open_change(ls: SageLanguageServer, params: Union[types.DidOpenNotebookDocumentParams, types.DidChangeNotebookDocumentParams]):
+    """Handle notebook open and change events to trigger linting."""
+    nb: types.NotebookDocument = ls.workspace.get_notebook_document(notebook_uri=params.notebook_document.uri)
+    log.warning(f"[notebook] uri={params.notebook_document.uri} version={params.notebook_document.version}")
+    if nb is None:
+        return
+
+    notebook = JupyterNotebook(ls, nb)
+    doc = notebook.virtual_document
+
+    # Handle semantic linting for notebook in virtual document
+    all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_semantic_lint(doc=doc, config=ls.StyleConfig)
+    virtual_diagnostics = [diag for plugin_diags in all_diagnostics for diag in plugin_diags]
+    diagnostics_by_cell = notebook.map_diagnostics(virtual_diagnostics)
+
+    for cell_uri, diagnostics in diagnostics_by_cell.items():
+        cell_doc = ls.workspace.get_text_document(cell_uri)
+        params = types.PublishDiagnosticsParams(
+            uri=cell_uri,
+            diagnostics=diagnostics,
+            version=cell_doc.version,
+        )
+        ls.text_document_publish_diagnostics(params)
+
+    # Handle style linting for notebook in original cell documents
+    for cell in notebook.cells:
+        if cell.kind != types.NotebookCellKind.Code:
+            continue
+        cell_doc = ls.workspace.get_text_document(cell.document)
+        all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_style_lint(doc=cell_doc, config=ls.StyleConfig)
+        diagnostics = [diag for plugin_diags in all_diagnostics for diag in plugin_diags]
+
+        params = types.PublishDiagnosticsParams(
+            uri=cell.document,
+            diagnostics=diagnostics,
+            version=cell_doc.version,
+        )
+        ls.text_document_publish_diagnostics(params)
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_OPEN)

@@ -7,10 +7,16 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Fix using `import_statements` in `symbols_cache` when Sage is not available, which caused errors when trying to get symbol information.
+- Fix sage available check error
 
 ### Added
 
 - Add `language_id` check to `pyflakes_lint` plugin to avoid errors when trying to lint non-Sage files without Sage available.
+- Add lint for codes in notebook cells
+
+### Changed
+
+- Split `sagelsp_lint` into `sagelsp_semantic_lint` and `sagelsp_style_lint` to separate diagnostics that are safe on virtual notebook documents and those that should run on original document or cell text.
 
 ## [1.0.3] - 2026-03-12
 
