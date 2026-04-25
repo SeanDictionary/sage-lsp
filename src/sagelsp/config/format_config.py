@@ -12,36 +12,69 @@ log = logging.getLogger(__name__)
 class StyleConfig:
     """Unified configuration for pycodestyle and autopep8."""
 
+    SECTIONS_KEYS = {
+        "pycodestyle": [
+            "select",
+            "ignore",
+            "exclude",
+            "max_line_length",
+            "indent_size",
+            "hang_closing",
+            "experimental",
+            "aggressive",
+        ],
+        "autopep8": [
+            "select",
+            "ignore",
+            "exclude",
+            "max_line_length",
+            "indent_size",
+            "hang_closing",
+            "experimental",
+            "aggressive",
+        ],
+        "notebook": [
+        ]
+    }
+    SECTIONS = list(SECTIONS_KEYS.keys())
+
     def __init__(self, workspace: Workspace = None):
         self.workspace = workspace
         self.workspace_root = Path(workspace.root_path) if workspace.root_path else None
         self._config = self._load_config()
+    
+    def _merge_configs(self, *configs: Dict[str, Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+        """Merge multiple configuration dictionaries, with later ones taking precedence."""
+        merged: Dict[str, Dict[str, Any]] = {}
+        for config in configs:
+            for section, settings in config.items():
+                if section not in merged:
+                    merged[section] = {}
+                merged[section].update(settings)
+        return merged
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> Dict[str, Dict[str, Any]]:
         """Load and merge global and project configurations."""
-        config = {}
-
         # Load global config
         global_config = self._load_global_config()
         if global_config:
-            config.update(global_config)
             log.debug(f"Loaded global config: {global_config}")
 
         # Load project config (overrides global)
+        project_config = {}
         if self.workspace_root:
             project_config = self._load_project_config()
             if project_config:
-                config.update(project_config)
                 log.debug(f"Loaded project config: {project_config}")
 
-        return config
+        return self._merge_configs(global_config, project_config)
 
-    def _load_global_config(self) -> Dict[str, Any]:
+    def _load_global_config(self) -> Dict[str, Dict[str, Any]]:
         """Load global pycodestyle configuration from ~/.config/pycodestyle."""
         config_path = Path(pycodestyle.USER_CONFIG)
         return self._parse_config_file(config_path)
 
-    def _load_project_config(self) -> Dict[str, Any]:
+    def _load_project_config(self) -> Dict[str, Dict[str, Any]]:
         """Load project configuration from setup.cfg, tox.ini, or .pycodestyle."""
         if not self.workspace_root:
             return {}
@@ -55,13 +88,13 @@ class StyleConfig:
 
         for config_file in config_files:
             config = self._parse_config_file(config_file)
-            if config:
+            if any(config.values()):
                 log.info(f"Using project config from {config_file}")
                 return config
 
         return {}
 
-    def _parse_config_file(self, config_path: Path) -> Dict[str, Any]:
+    def _parse_config_file(self, config_path: Path) -> Dict[str, Dict[str, Any]]:
         """Parse a pycodestyle configuration file."""
         if not config_path.exists():
             return {}
@@ -75,10 +108,14 @@ class StyleConfig:
 
         config = {}
         
-        section = "pycodestyle"
-        if parser.has_section(section):
-            for key, value in parser.items(section):
-                config[key] = self._parse_config_value(key, value)
+        for section in self.SECTIONS:
+            section_config = {}
+            if parser.has_section(section):
+                for _key, value in parser.items(section):
+                    key = _key.replace("-", "_")  # Normalize keys to match our expected format
+                    if key in self.SECTIONS_KEYS[section]:
+                        section_config[key] = self._parse_config_value(key, value)
+            config[section] = section_config
 
         return config
 
@@ -105,42 +142,13 @@ class StyleConfig:
 
     def get_pycodestyle_config(self) -> Dict[str, Any]:
         """Get configuration for pycodestyle.StyleGuide."""
-        config = {}
-        
-        # Map config keys to pycodestyle parameters
-        key_mapping = {
-            "select": "select",
-            "ignore": "ignore",
-            "exclude": "exclude",
-            "max_line_length": "max_line_length",
-            "indent_size": "indent_size",
-            "hang_closing": "hang_closing",
-        }
-        
-        for config_key, param_key in key_mapping.items():
-            if config_key in self._config and self._config[config_key] is not None:
-                config[param_key] = self._config[config_key]
-        
+        config = self._config.get("pycodestyle", {}).copy()
+
         return config
 
     def get_autopep8_config(self, line_range: Optional[List[int]] = None) -> Dict[str, Any]:
         """Get configuration for autopep8.fix_code."""
-        config = {}
-        
-        # Map config keys to autopep8 parameters
-        key_mapping = {
-            "select": "select",
-            "ignore": "ignore",
-            "exclude": "exclude",
-            "max_line_length": "max_line_length",
-            "indent_size": "indent_size",
-            "hang_closing": "hang_closing",
-            "aggressive": "aggressive",
-        }
-        
-        for config_key, param_key in key_mapping.items():
-            if config_key in self._config and self._config[config_key] is not None:
-                config[param_key] = self._config[config_key]
+        config = self._config.get("autopep8", {}).copy()
         
         # Add line range if provided
         if line_range is not None:
@@ -148,6 +156,6 @@ class StyleConfig:
         
         return config
 
-    def get_raw_config(self) -> Dict[str, Any]:
+    def get_config(self) -> Dict[str, Dict[str, Any]]:
         """Get raw merged configuration."""
         return self._config.copy()

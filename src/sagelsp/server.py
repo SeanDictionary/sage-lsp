@@ -99,7 +99,7 @@ def notebook_open_change(ls: SageLanguageServer, params: Union[types.DidOpenNote
 @server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
 def open_change(ls: SageLanguageServer, params: Union[types.DidOpenTextDocumentParams, types.DidChangeTextDocumentParams]):
     """Handle document open and change events to trigger linting."""
-    if ls.workspace.get_notebook_document(cell_uri=params.text_document.uri) is not None:
+    if ls.workspace.get_notebook_document(cell_uri=params.text_document.uri) is not None:   # Seems that it'll not appear
         return
     doc: TextDocument = ls.workspace.get_text_document(doc_uri=params.text_document.uri)
     all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_lint(doc=doc, config=ls.StyleConfig)
