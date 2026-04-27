@@ -34,6 +34,7 @@ class StyleConfig:
             "aggressive",
         ],
         "notebook": [
+            "ignore",
         ]
     }
     SECTIONS = list(SECTIONS_KEYS.keys())
@@ -149,11 +150,44 @@ class StyleConfig:
     def get_autopep8_config(self, line_range: Optional[List[int]] = None) -> Dict[str, Any]:
         """Get configuration for autopep8.fix_code."""
         config = self._config.get("autopep8", {}).copy()
+        if not config:
+            # Fallback to pycodestyle config if autopep8 config is not defined
+            config = self._config.get("pycodestyle", {}).copy()
         
         # Add line range if provided
         if line_range is not None:
             config["line_range"] = line_range
         
+        return config
+    
+    def get_notebook_pycodestyle_config(self) -> Dict[str, Any]:
+        """Get configuration for notebook formatting."""
+        config = self.get_pycodestyle_config()
+        notebook_config = self._config.get("notebook", {}).copy()
+
+        for key in self.SECTIONS_KEYS["notebook"]:
+            tmp = [
+                *config.get(key, []),
+                *notebook_config.get(key, []),
+            ]
+            if tmp:
+                config[key] = tmp
+
+        return config
+
+    def get_notebook_autopep8_config(self, line_range: Optional[List[int]] = None) -> Dict[str, Any]:
+        """Get configuration for notebook formatting."""
+        config = self.get_autopep8_config(line_range=line_range)
+        notebook_config = self._config.get("notebook", {}).copy()
+
+        for key in self.SECTIONS_KEYS["notebook"]:
+            tmp = [
+                *config.get(key, []),
+                *notebook_config.get(key, []),
+            ]
+            if tmp:
+                config[key] = tmp
+
         return config
 
     def get_config(self) -> Dict[str, Dict[str, Any]]:

@@ -17,7 +17,7 @@ pycodestyle_patch()
 
 
 @hookimpl
-def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
+def sagelsp_lint(doc: TextDocument, config: StyleConfig, notebook: bool) -> List[types.Diagnostic]:
     """Lint the document using pycodestyle."""
     diagnostics: List[types.Diagnostic] = []
 
@@ -26,7 +26,10 @@ def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnosti
     lines = source.splitlines(keepends=True)
 
     # Load configuration from global and project sources
-    config = config.get_pycodestyle_config()
+    if notebook:
+        config = config.get_notebook_pycodestyle_config()
+    else:
+        config = config.get_pycodestyle_config()
 
     style = pycodestyle.StyleGuide(**config)
 
@@ -46,8 +49,8 @@ def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnosti
 
 
 @hookimpl
-def sagelsp_style_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
-    return sagelsp_lint(doc, config)
+def sagelsp_style_lint(doc: TextDocument, config: StyleConfig, notebook: bool) -> List[types.Diagnostic]:
+    return sagelsp_lint(doc, config, notebook)
 
 
 """

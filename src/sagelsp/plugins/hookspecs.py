@@ -6,30 +6,30 @@ from pygls.workspace import TextDocument
 
 
 @hookspec
-def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
+def sagelsp_lint(doc: TextDocument, config: StyleConfig, notebook: bool) -> List[types.Diagnostic]:
     """Lint the document using pycodestyle. It includes both style and semantic linting."""
     pass
 
 @hookspec
-def sagelsp_semantic_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
+def sagelsp_semantic_lint(doc: TextDocument, config: StyleConfig, notebook: bool) -> List[types.Diagnostic]:
     """Lint diagnostics that are safe on virtual notebook documents. Specially for Jupyter notebook"""
     pass
 
 
 @hookspec
-def sagelsp_style_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
+def sagelsp_style_lint(doc: TextDocument, config: StyleConfig, notebook: bool) -> List[types.Diagnostic]:
     """Lint diagnostics that should run on original document or cell text. Specially for Jupyter notebook"""
     pass
 
 
 @hookspec
-def sagelsp_format_document(doc: TextDocument, config: StyleConfig) -> List[types.TextEdit]:
+def sagelsp_format_document(doc: TextDocument, config: StyleConfig, notebook: bool) -> List[types.TextEdit]:
     """Format the document using autopep8."""
     pass
 
 
 @hookspec
-def sagelsp_format_range(doc: TextDocument, start_line: int, end_line: int, config: StyleConfig) -> List[types.TextEdit]:
+def sagelsp_format_range(doc: TextDocument, start_line: int, end_line: int, config: StyleConfig, notebook: bool) -> List[types.TextEdit]:
     """Format a range of the document using autopep8."""
     pass
 

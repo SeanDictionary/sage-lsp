@@ -13,10 +13,12 @@ All notable changes to this project will be documented in this file.
 
 - Add `language_id` check to `pyflakes_lint` plugin to avoid errors when trying to lint non-Sage files without Sage available.
 - Add lint for codes in notebook cells
+- Add notebook check
 
 ### Changed
 
 - Split `sagelsp_lint` into `sagelsp_semantic_lint` and `sagelsp_style_lint` to separate diagnostics that are safe on virtual notebook documents and those that should run on original document or cell text.
+- Change config load
 
 ## [1.0.3] - 2026-03-12
 

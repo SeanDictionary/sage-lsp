@@ -42,6 +42,10 @@ server = SageLanguageServer(
 )
 
 
+def notebook_check(ls: SageLanguageServer, params) -> bool:
+    return ls.workspace.get_notebook_document(cell_uri=params.text_document.uri) is not None
+
+
 @server.feature(types.INITIALIZE)
 def initialize(ls: SageLanguageServer, params):
     ls.refresh_styleconfig()
@@ -57,7 +61,7 @@ def did_change_configuration(ls: SageLanguageServer, params):
 def notebook_open_change(ls: SageLanguageServer, params: Union[types.DidOpenNotebookDocumentParams, types.DidChangeNotebookDocumentParams]):
     """Handle notebook open and change events to trigger linting."""
     nb: types.NotebookDocument = ls.workspace.get_notebook_document(notebook_uri=params.notebook_document.uri)
-    log.warning(f"[notebook] uri={params.notebook_document.uri} version={params.notebook_document.version}")
+    log.info(f"[notebook] uri={params.notebook_document.uri} version={params.notebook_document.version}")
     if nb is None:
         return
 
@@ -65,7 +69,7 @@ def notebook_open_change(ls: SageLanguageServer, params: Union[types.DidOpenNote
     doc = notebook.virtual_document
 
     # Handle semantic linting for notebook in virtual document
-    all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_semantic_lint(doc=doc, config=ls.StyleConfig)
+    all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_semantic_lint(doc=doc, config=ls.StyleConfig, notebook=True)
     virtual_diagnostics = [diag for plugin_diags in all_diagnostics for diag in plugin_diags]
     diagnostics_semantic = notebook.map_diagnostics(virtual_diagnostics)
 
@@ -77,7 +81,7 @@ def notebook_open_change(ls: SageLanguageServer, params: Union[types.DidOpenNote
         cell_doc = ls.workspace.get_text_document(cell.document)
         if cell_doc.language_id != LANGUAGE_ID:
             continue
-        all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_style_lint(doc=cell_doc, config=ls.StyleConfig)
+        all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_style_lint(doc=cell_doc, config=ls.StyleConfig, notebook=True)
         diagnostics = [diag for plugin_diags in all_diagnostics for diag in plugin_diags]
 
         diagnostics_style[cell.document] = diagnostics
@@ -99,7 +103,7 @@ def notebook_open_change(ls: SageLanguageServer, params: Union[types.DidOpenNote
 @server.feature(types.TEXT_DOCUMENT_DID_CHANGE)
 def open_change(ls: SageLanguageServer, params: Union[types.DidOpenTextDocumentParams, types.DidChangeTextDocumentParams]):
     """Handle document open and change events to trigger linting."""
-    if ls.workspace.get_notebook_document(cell_uri=params.text_document.uri) is not None:   # Seems that it'll not appear
+    if notebook_check(ls, params):   # Seems that it'll not appear
         return
     doc: TextDocument = ls.workspace.get_text_document(doc_uri=params.text_document.uri)
     all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_lint(doc=doc, config=ls.StyleConfig)
@@ -117,19 +121,19 @@ def open_change(ls: SageLanguageServer, params: Union[types.DidOpenTextDocumentP
 def format_document(ls: SageLanguageServer, params: types.DocumentFormattingParams) -> List[types.TextEdit]:
     """Format the entire document."""
     doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
-    all_edits: List[List[types.TextEdit]] = ls.pm.hook.sagelsp_format_document(doc=doc, config=ls.StyleConfig)
+    all_edits: List[List[types.TextEdit]] = ls.pm.hook.sagelsp_format_document(doc=doc, config=ls.StyleConfig, notebook=notebook_check(ls, params))
     edits = [edit for plugin_edits in all_edits for edit in plugin_edits]
 
     return edits
 
 
 @server.feature(types.TEXT_DOCUMENT_RANGE_FORMATTING)
-def format_range(ls: SageLanguageServer, params: types.DocumentRangeFormattingParams) -> List:
+def format_range(ls: SageLanguageServer, params: types.DocumentRangeFormattingParams) -> List[types.TextEdit]:
     """Format a range of the document."""
     doc: TextDocument = ls.workspace.get_text_document(params.text_document.uri)
     start_line = params.range.start.line
     end_line = params.range.end.line
-    all_edits: List[List[types.TextEdit]] = ls.pm.hook.sagelsp_format_range(doc=doc, start_line=start_line, end_line=end_line, config=ls.StyleConfig)
+    all_edits: List[List[types.TextEdit]] = ls.pm.hook.sagelsp_format_range(doc=doc, start_line=start_line, end_line=end_line, config=ls.StyleConfig, notebook=notebook_check(ls, params))
     edits = [edit for plugin_edits in all_edits for edit in plugin_edits]
 
     return edits

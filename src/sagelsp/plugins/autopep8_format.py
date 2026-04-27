@@ -10,18 +10,18 @@ from lsprotocol import types
 log = logging.getLogger(__name__)
 
 @hookimpl
-def sagelsp_format_document(doc: TextDocument, config: StyleConfig) -> List[types.TextEdit]:
+def sagelsp_format_document(doc: TextDocument, config: StyleConfig, notebook: bool) -> List[types.TextEdit]:
     """Format the document using autopep8."""
-    return _format(doc, config)
+    return _format(doc, config, notebook=notebook)
 
 
 @hookimpl
-def sagelsp_format_range(doc: TextDocument, start_line: int, end_line: int, config: StyleConfig) -> List[types.TextEdit]:
+def sagelsp_format_range(doc: TextDocument, start_line: int, end_line: int, config: StyleConfig, notebook: bool) -> List[types.TextEdit]:
     """Format a range of the document using autopep8."""
-    return _format(doc, config, line_range=[start_line, end_line])
+    return _format(doc, config, notebook=notebook, line_range=[start_line, end_line])
 
 
-def _format(doc: TextDocument, config: StyleConfig, line_range: List[int] = None) -> List[types.TextEdit]:
+def _format(doc: TextDocument, config: StyleConfig, notebook: bool, line_range: List[int] = None) -> List[types.TextEdit]:
     if line_range:
         log.info(f"Formatting document {doc.uri} from line {line_range[0]} to {line_range[1]} with autopep8")
     else:
@@ -30,7 +30,10 @@ def _format(doc: TextDocument, config: StyleConfig, line_range: List[int] = None
     source = source.replace("\r\n", "\n").replace("\r", "\n")
     
     # Load configuration from global and project sources
-    config = config.get_autopep8_config()
+    if notebook:
+        config = config.get_notebook_autopep8_config(line_range=line_range)
+    else:
+        config = config.get_autopep8_config(line_range=line_range)
 
     new_source = autopep8.fix_code(source, options=config)
 

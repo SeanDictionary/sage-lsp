@@ -50,7 +50,7 @@ def get_imported_names(source: str) -> Dict[str, str]:
 
 
 @hookimpl
-def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
+def sagelsp_lint(doc: TextDocument, config: StyleConfig, notebook: bool) -> List[types.Diagnostic]:
     """Lint the document using pyflakes."""
     diagnostics: List[types.Diagnostic] = []
 
@@ -85,8 +85,8 @@ def sagelsp_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnosti
 
 
 @hookimpl
-def sagelsp_semantic_lint(doc: TextDocument, config: StyleConfig) -> List[types.Diagnostic]:
-    return sagelsp_lint(doc, config)
+def sagelsp_semantic_lint(doc: TextDocument, config: StyleConfig, notebook: bool) -> List[types.Diagnostic]:
+    return sagelsp_lint(doc, config, notebook)
 
 
 """
