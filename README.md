@@ -93,14 +93,109 @@ sagelsp -l      // set log level (default: INFO)
 sagelsp --clear // clear local symbols cache and exit
 ```
 
-Support global config file `~/.config/pycodestyle` or local config file in project root `.pycodestyle`, `setup.cfg`, `tox.ini` for pycodestyle and autopep8, see more details in [pycodestyle docs](https://pycodestyle.pycqa.org/en/latest/intro.html#configuration)
+### Configuration
 
-Both pycodestyle and autopep8 config write in the same file under `[pycodestyle]` section, for example:
+The server reads style-related configuration from:
+
+1. Global config: `~/.config/pycodestyle`
+2. Project config in workspace root: `.pycodestyle`, `setup.cfg`, `tox.ini`
+
+Project config overrides global config.
+
+For project config files, only the first file found in this order is used:
+
+1. `.pycodestyle`
+2. `setup.cfg`
+3. `tox.ini`
+
+The parser currently reads these sections:
+
+- `[pycodestyle]`
+- `[autopep8]`
+- `[notebook]`
+
+Top 2 sections are 
+
+#### `[pycodestyle]`
+
+Used for style diagnostics from `pycodestyle`.
+
+Supported keys:
+
+- `select`
+- `ignore`
+- `exclude`
+- `max-line-length`
+- `indent-size`
+- `hang-closing`
+- `experimental`
+- `aggressive`
+
+Example:
 
 ```ini
 [pycodestyle]
+ignore = E741, E742, E743, E722, E501
+max-line-length = 160
+```
+
+#### `[autopep8]`
+
+Used for formatting from `autopep8`.
+
+Supported keys:
+
+- `select`
+- `ignore`
+- `exclude`
+- `max-line-length`
+- `indent-size`
+- `hang-closing`
+- `experimental`
+- `aggressive`
+
+**If `[autopep8]` is missing, the server falls back to `[pycodestyle]` for formatter config.**
+
+Example:
+
+```ini
+[autopep8]
 max-line-length = 100
-...
+aggressive = 1
+```
+
+#### `[notebook]`
+
+Used for Jupyter notebook cell-specific overrides.
+
+At the moment, this section supports:
+
+- `ignore`
+
+Its values are appended to the normal config when formatting or linting notebook cells.This is useful for rules that are often noisy in cells, such as trailing blank lines at the end of a cell.
+
+Example: Usually, checking W391 (blank line at end of file) and W292 (no newline at end of file) is useless in notebook cells
+
+```ini
+[notebook]
+ignore = W391, W292
+```
+
+#### Complete example
+
+All sections can be empty.
+
+```ini
+[pycodestyle]
+ignore = E741, E742, E743, E722, E501
+max-line-length = 160
+
+[autopep8]
+max-line-length = 120
+aggressive = 1
+
+[notebook]
+ignore = W391, W292
 ```
 
 ### Using with extension [SageMath-for-VScode](https://github.com/SeanDictionary/SageMath-for-VScode)
