@@ -56,6 +56,7 @@ Supported from plugins(very thanks to those projects, they finished a lot of wor
 
 Supported from native code:
 
+- Support Jupyter notebook
 - Only support using `from sage.xxx import xxx` or `import sage.xxx` (no alias)
 - Local symbols cache for Sage
 - Custom formatting rules for Sage
