@@ -106,7 +106,7 @@ def open_change(ls: SageLanguageServer, params: Union[types.DidOpenTextDocumentP
     if notebook_check(ls, params):   # Seems that it'll not appear
         return
     doc: TextDocument = ls.workspace.get_text_document(doc_uri=params.text_document.uri)
-    all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_lint(doc=doc, config=ls.StyleConfig)
+    all_diagnostics: List[List[types.Diagnostic]] = ls.pm.hook.sagelsp_lint(doc=doc, config=ls.StyleConfig, notebook=False)
     diagnostics = [diag for plugin_diags in all_diagnostics for diag in plugin_diags]
 
     params = types.PublishDiagnosticsParams(

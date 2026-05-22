@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.2] - 2026-05-22
+
+### Fixed
+
+- Fix sagelsp_lint without notebook check in server.py, while handling diagnostics for text documents.
+
 ## [1.1.1] - 2026-05-22
 
 ### Changed
