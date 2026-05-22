@@ -2,44 +2,24 @@
 
 ## Description
 
-![Release](https://img.shields.io/github/v/release/SeanDictionary/sage-lsp) ![Platform](https://img.shields.io/badge/platform-Linux-green) ![License](https://img.shields.io/github/license/SeanDictionary/sage-lsp) ![GitHub repo size](https://img.shields.io/github/repo-size/SeanDictionary/sage-lsp) ![GitHub last commit](https://img.shields.io/github/last-commit/SeanDictionary/sage-lsp) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/downloads/) [![SageMath](https://img.shields.io/badge/SageMath-Suggested%2010.8%2B-yellow)](https://www.sagemath.org/) [![PyPI Downloads](https://static.pepy.tech/personalized-badge/sage-lsp?period=total&units=INTERNATIONAL_SYSTEM&left_color=GRAY&right_color=GREEN&left_text=Downloads)](https://pepy.tech/projects/sage-lsp)
+![Release](https://img.shields.io/github/v/release/SeanDictionary/sage-lsp) ![Platform](https://img.shields.io/badge/platform-Linux-green) ![License](https://img.shields.io/github/license/SeanDictionary/sage-lsp) ![GitHub repo size](https://img.shields.io/github/repo-size/SeanDictionary/sage-lsp) ![GitHub last commit](https://img.shields.io/github/last-commit/SeanDictionary/sage-lsp) [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/downloads/) [![SageMath](https://img.shields.io/badge/SageMath-Suggested%2010.9%2B-yellow)](https://www.sagemath.org/) [![PyPI Downloads](https://static.pepy.tech/personalized-badge/sage-lsp?period=total&units=INTERNATIONAL_SYSTEM&left_color=GRAY&right_color=GREEN&left_text=Downloads)](https://pepy.tech/projects/sage-lsp)
 
 SageMath Language Server Protocol
 
 > [!TIP]
-> This project may work well with SageMath 10.8+. Other versions lack stubs for Cython files, so they may have limited functionality.
+>This project may work well with SageMath 10.9+. Other versions lack stubs for Cython files, so they may have limited functionality.
 >
-> However, until now (2026-2-13), SageMath 10.8 is not accessible from conda-forge (but it released on github).
->Meanwhile, maintainer doesn't include `.pyi` files in the build system, so you can't simply install it from pip either.
+>However, until now (2026-5-22), SageMath 10.9 is not accessible from conda-forge (but it released on github).
 >
 >You may need to [install it from source code](https://doc.sagemath.org/html/en/installation/source.html). And edit some code.
 >```bash
->git clone --branch 10.8 --single-branch https://github.com/sagemath/sage.git
+>git clone --branch 10.9 --single-branch https://github.com/sagemath/sage.git
 >cd sage
->mamba env create --file environment-3.12-linux.yml --name sage10.8
->mamba activate sage10.8
->```
->Edit `./tools/update-meson.py` like this
->```diff
->@@ -93,3 +93,3 @@
->        python_files = sorted(
->-            list(folder.glob("*.py")) + list(folder.glob('*.pxd')) + list(folder.glob('*.pyx'))
->+            list(folder.glob("*.py")) + list(folder.glob('*.pxd')) + list(folder.glob('*.pyx')) + list(folder.glob('*.pyi'))
->        )  # + list(folder.glob('*.pxd')) + list(folder.glob('*.h')))
->```
->Run `./tools/update-meson.py` to regenerate `meson.build` files. Then you can install it.
->```bash
->python ./tools/update-meson.py
+>mamba env create --file environment-3.13-linux.yml --name sage10.9
+>mamba activate sage10.9
 >pip install .
 >```
 >Using `sage --version` to check if successfully installed.
-
->[!WARNING]
->If raising error about `ImportError: cysignals.signals does not export expected C function _do_raise_exception`, using following command to fix it.
->```bash
->pip uninstall cysignals
->conda install cysignals
->```
 
 ## Features
 
