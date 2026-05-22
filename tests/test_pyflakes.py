@@ -1,11 +1,16 @@
 import pytest
+from types import SimpleNamespace
 from pygls.workspace import TextDocument
+from sagelsp.config import StyleConfig
 
 source = """\
 v = VectorSpace(ZZ, 3)
 R.<x, y> = PolynomialRing(QQ)
 A = Matr
 """
+
+
+TEST_STYLE_CONFIG = StyleConfig(SimpleNamespace(root_path=None))
 
 
 def test_pyflakes_diagnostics(client):
@@ -39,8 +44,8 @@ def _test_pyflakes_direct():
         language_id="sagemath",
         version=1
     )
-    
-    diagnostics = sagelsp_lint(doc=doc)
+
+    diagnostics = sagelsp_lint(doc=doc, config=TEST_STYLE_CONFIG, notebook=False)
     for diag in diagnostics:
         print(f"Diagnostic: {diag}")
 

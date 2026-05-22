@@ -1,5 +1,7 @@
 import pytest
+from types import SimpleNamespace
 from pygls.workspace import TextDocument
+from sagelsp.config import StyleConfig
 
 
 # Code containing multiple pycodestyle errors
@@ -19,6 +21,9 @@ target_issues = [
     "E231 missing whitespace after ','",
     "E227 missing whitespace around bitwise or shift operator",
 ]
+
+
+TEST_STYLE_CONFIG = StyleConfig(SimpleNamespace(root_path=None))
 
 
 def test_pycodestyle_diagnostics(client):
@@ -54,7 +59,7 @@ def _test_pycodestyle_direct():
         version=1
     )
 
-    diagnostics = sagelsp_lint(doc)
+    diagnostics = sagelsp_lint(doc=doc, config=TEST_STYLE_CONFIG, notebook=False)
 
     print(f"\nDirect call to sagelsp_lint returned {len(diagnostics)} diagnostics:")
     for diag in diagnostics:
